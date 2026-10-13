@@ -59,11 +59,11 @@ function buildJaca() {
 
 const JACA_BUILDINGS = [
   { id: 'j_ayto',       kind: 'hall',        x: 9,  y: 8,  w: 5, h: 4, door: 2, name: 'Ayuntamiento de Jaca' },
-  { id: 'j_catedral',   kind: 'church',      x: 15, y: 7,  w: 6, h: 5, door: 3, name: 'Catedral de San Pedro' },
+  { id: 'j_catedral',   kind: 'jacacat',      x: 15, y: 7,  w: 6, h: 5, door: 3, name: 'Catedral de San Pedro' },
   { id: 'j_reloj',      kind: 'clocktower',  x: 24, y: 8,  w: 3, h: 4, door: -1, name: 'Torre del Reloj' },
   { id: 'j_centro',     kind: 'center',      x: 9,  y: 16, w: 5, h: 4, door: 2, name: 'Centro Oscamon' },
   { id: 'j_tienda',     kind: 'shop',        x: 16, y: 16, w: 4, h: 3, door: 1, name: 'Tienda' },
-  { id: 'j_gym',        kind: 'icerink',     x: 22, y: 16, w: 7, h: 4, door: 3, name: 'Pabellón de Hielo' },
+  { id: 'j_gym',        kind: 'icerink',     x: 22, y: 16, w: 7, h: 4, door: 3, name: 'Pabellón de Hielo', gym: 'jaca' },
   { id: 'j_estacion',   kind: 'station',     x: 14, y: 22, w: 6, h: 2, door: 3, name: 'Estación de Jaca' },
   { id: 'j_ciudadela',  kind: 'citadel',     x: 32, y: 7,  w: 6, h: 5, door: 3, name: 'Ciudadela de Jaca' },
 ];

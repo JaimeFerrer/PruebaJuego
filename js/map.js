@@ -105,10 +105,10 @@ function buildMap() {
 
 // Edificios: door = columna (relativa) de la puerta en la fila inferior
 const BUILDINGS = [
-  { id: 'gym',       kind: 'gym',       x: 15, y: 25, w: 6, h: 4, door: 3, name: 'Palacio de los Reyes de Aragón' },
+  { id: 'gym',       kind: 'gym',       x: 15, y: 25, w: 6, h: 4, door: 3, name: 'Palacio de los Reyes de Aragón', gym: 'huesca' },
   { id: 'catedral',  kind: 'cathedral', x: 23, y: 24, w: 7, h: 6, door: 3, name: 'Catedral de Santa María' },
   { id: 'ayto',      kind: 'hall',      x: 31, y: 25, w: 5, h: 4, door: 2, name: 'Ayuntamiento' },
-  { id: 'sanpedro',  kind: 'church',    x: 15, y: 31, w: 5, h: 4, door: 2, name: 'San Pedro el Viejo' },
+  { id: 'sanpedro',  kind: 'sanpedro',    x: 15, y: 31, w: 5, h: 4, door: 2, name: 'San Pedro el Viejo' },
   { id: 'tienda',    kind: 'shop',      x: 22, y: 33, w: 4, h: 3, door: 1, name: 'Ultramarinos del Coso' },
   { id: 'casa1',     kind: 'house',     x: 28, y: 33, w: 3, h: 3, door: 1, colors: ['#f0d8b0', '#b8503a'] },
   { id: 'casa2',     kind: 'house',     x: 32, y: 32, w: 4, h: 3, door: 1, colors: ['#e8e0d0', '#8a4a3a'] },

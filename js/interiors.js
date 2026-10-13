@@ -26,24 +26,29 @@ const RESIDENT_PALS = [
 
 function strHash(str) { let h = 7; for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) | 0; return Math.abs(h); }
 
+// Aprendiz de cada gimnasio (clave: id del gimnasio)
 const GYM_TRAINERS = {
-  gym: { id: 'gymtr_huesca', name: 'Monje Aprendiz Íñigo', team: [['danzante', 9], ['mallorroc', 10]], money: 90,
-    intro: 'Para llegar hasta el Rey Monje tendrás que pasar por encima de mí.', lose: '¡La campana ha sonado por mí!',
-    after: 'Ramiro II usa Oscamon de tipo Roca. El agua y la planta les hacen mucho daño.', pal: ['#5a4a3a', '#7a5a3a', '#4a3a2a'] },
-  b_gym: { id: 'gymtr_barbastro', name: 'Bodeguero Luis', team: [['albahaquin', 13], ['ranisuela', 13]], money: 120,
-    intro: '¡Esta añada es de las buenas! ¿Combatimos antes de ver a Vero?', lose: '¡Se me ha avinagrado el combate!',
-    after: 'Vero usa Oscamon de tipo Planta. El fuego y el aire les hacen mucho daño.', pal: ['#4a2a2a', '#8a2a4a', '#3a2a2a'] },
-  j_gym: { id: 'gymtr_jaca', name: 'Patinador Diego', team: [['arminin', 15], ['nevero', 16]], money: 150,
-    intro: '¡Cuidado, que el suelo resbala! Y mis Oscamon, también.', lose: '¡Me he caído de culo!',
-    after: 'Nieves usa Oscamon de tipo Hielo. El fuego y la roca les hacen mucho daño.', pal: ['#202020', '#c03030', '#2a2a3a'] },
+  huesca: { name: 'Monje Aprendiz Íñigo', team: [['danzante', 9], ['mallorroc', 10]], pal: ['#5a4a3a', '#7a5a3a', '#4a3a2a'] },
+  barbastro: { name: 'Bodeguero Luis', team: [['albahaquin', 13], ['ranisuela', 13]], pal: ['#4a2a2a', '#8a2a4a', '#3a2a2a'] },
+  monzon: { name: 'Escudero Pedro', team: [['fogaril', 16], ['almenazo', 16]], pal: ['#6a6a6a', '#f4f4f4', '#3a3a3a'] },
+  jaca: { name: 'Patinador Diego', team: [['arminin', 17], ['nevero', 18]], pal: ['#202020', '#c03030', '#2a2a3a'] },
+  sabinanigo: { name: 'Piragüista Ane', team: [['ranisuela', 20], ['truchon', 21]], pal: ['#e0c040', '#e04040', '#2a2a3a'] },
+  ainsa: { name: 'Juglara Blanca', team: [['trenzon', 23], ['danzante', 24]], pal: ['#a02a2a', '#e8e0c8', '#4a3a2a'] },
+  benasque: { name: 'Alpinista Jordi', team: [['cierzin', 26], ['quebranto', 27]], pal: ['#3a5a8a', '#e0e0e0', '#2a2a3a'] },
+  ordesa: { name: 'Guarda Mayor Carmen', team: [['marmotin', 30], ['sarrion', 30], ['buitron', 31]], pal: ['#5a3a1a', '#3a7a3a', '#4a3a2a'] },
 };
+for (const k in GYM_TRAINERS) Object.assign(GYM_TRAINERS[k], {
+  id: 'gymtr_' + k, money: GYM_TRAINERS[k].team[0][1] * 10,
+  intro: 'Antes de llegar al Líder tendrás que pasar por encima de mí.', lose: '¡Vaya! Eres de verdad.',
+  after: 'El Líder te espera al fondo. ¡Fíjate bien en los tipos!',
+});
 
 const ROOM_KIND = {
   house: 'house', hogar: 'house', center: 'center', shop: 'shop', lab: 'lab',
-  church: 'church', cathedral: 'church', monastery: 'church',
+  church: 'church', cathedral: 'church', monastery: 'church', sanpedro: 'church', jacacat: 'church', colegiata: 'church',
   hall: 'hall', casino: 'hall', station: 'station', bigstation: 'station',
   castle: 'castle', loarre: 'castle', citadel: 'castle',
-  gym: 'gym', bodega: 'gym', icerink: 'gym',
+  gym: 'gym', bodega: 'gym', icerink: 'gym', pool: 'gym', chalet: 'gym',
 };
 
 function getInterior(b) {
@@ -53,7 +58,7 @@ function getInterior(b) {
 }
 
 function makeInterior(b, id) {
-  const kind = b.id === 'hogar' ? 'hogar' : (ROOM_KIND[b.kind] || 'house');
+  const kind = b.id === 'hogar' ? 'hogar' : b.gym ? 'gym' : (ROOM_KIND[b.kind] || 'house');
   const r = srand(strHash(b.id) + 3);
   const pick = arr => arr[Math.floor(r() * arr.length)];
   const big = b.kind === 'cathedral' || b.kind === 'loarre' || b.kind === 'bigstation';
@@ -61,7 +66,7 @@ function makeInterior(b, id) {
     hall: [13, 10], station: big ? [17, 9] : [13, 9], castle: big ? [15, 12] : [13, 11], gym: [13, 14] }[kind];
   const [W, H] = size;
   const floor = { house: 'f', hogar: 'f', center: 'k', shop: 'k', lab: 'k', church: 's', hall: 'f', station: 'k', castle: 's',
-    gym: b.kind === 'icerink' ? 'i' : b.kind === 'bodega' ? 'f' : 's' }[kind];
+    gym: { icerink: 'i', bodega: 'f', chalet: 'f', pool: 'k' }[b.kind] || 's' }[kind];
   const g = Array.from({ length: H }, () => Array(W).fill(floor));
   const set = (x, y, c) => { if (x > 0 && y > 1 && x < W - 1 && y < H - 1) g[y][x] = c; };
   const rect = (x, y, w, h, c) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) set(i, j, c); };
@@ -151,17 +156,17 @@ function makeInterior(b, id) {
     }
     case 'gym': {
       for (let y = 2; y < H - 1; y++) g[y][mx] = 'c';
-      const deco = b.kind === 'bodega' ? 'o' : b.kind === 'icerink' ? 'q' : 'l';
+      const deco = { bodega: 'o', icerink: 'q', pool: 'p', chalet: 'p' }[b.kind] || 'l';
       for (let y = 3; y < H - 2; y += 3) { set(2, y, deco); set(W - 3, y, deco); }
-      const leaderPal = b.kind === 'bodega' ? ['#6a2a4a', '#e8d8c0', '#4a2a3a'] : b.kind === 'icerink' ? ['#eef6ff', '#3a7ad0', '#2a3a6a'] : GYM_PAL;
-      host(mx, 3, 'leader', { pal: leaderPal });
-      const tr = GYM_TRAINERS[b.id];
+      const gd = GYMS[b.gym];
+      host(mx, 3, 'leader', { pal: gd ? gd.pal : GYM_PAL });
+      const tr = GYM_TRAINERS[b.gym];
       if (tr) npcs.push({ id: tr.id, x: mx - 3, y: 8, dir: 'right', pal: tr.pal, trainer: tr });
       break;
     }
   }
   const name = b.name || 'Casa';
-  const bg = kind === 'gym' ? (b.kind === 'icerink' ? 'snow' : b.kind === 'bodega' ? 'grass' : 'palace') : 'palace';
+  const bg = kind === 'gym' && GYMS[b.gym] ? GYMS[b.gym].bg : 'palace';
   return {
     id, name, w: W, h: H, interior: true, build: () => g, tiles: g,
     buildings: [], signs: [], npcs, items: [], legends: [],

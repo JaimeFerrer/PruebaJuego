@@ -61,6 +61,8 @@ const MOVES = {
   cascada:     { name: 'Cola de Caballo', type: 'Agua', power: 80, acc: 95 },
   almena:      { name: 'Almenazo', type: 'Roca', power: 60, acc: 95 },
   cuernos:     { name: 'Cuernos del Pirineo', type: 'Roca', power: 100, acc: 90 },
+  picado:      { name: 'Picado', type: 'Aire', power: 80, acc: 95 },
+  antorcha:    { name: 'Antorcha', type: 'Fuego', power: 75, acc: 95 },
 };
 
 // Especies. Todas inventadas e inspiradas en Huesca y el Alto Aragón.
@@ -173,6 +175,21 @@ const SPECIES = {
     moves: [[1, 'placaje'], [1, 'endurecer'], [7, 'lanzarrocas'], [14, 'almena']],
     desc: 'Una almena que se cayó del Castillo de Loarre y decidió seguir defendiéndolo.',
   },
+  fogaril: {
+    name: 'Fogaril', types: ['Fuego'], base: { hp: 50, atk: 60, def: 50, spd: 58 }, exp: 66, catch: 0.45,
+    moves: [[1, 'aranazo'], [1, 'ascuas'], [10, 'grunido'], [16, 'parrilla']],
+    desc: 'El espíritu del fogaril, el hogar de leña de las casas del Pirineo. Siempre busca un rincón calentito.',
+  },
+  antorchon: {
+    name: 'Antorchón', types: ['Fuego', 'Roca'], base: { hp: 62, atk: 74, def: 74, spd: 40 }, exp: 110, catch: 0.25,
+    moves: [[1, 'placaje'], [1, 'ascuas'], [10, 'lanzarrocas'], [18, 'antorcha'], [26, 'desprend']],
+    desc: 'Una antorcha de los muros del castillo templario de Monzón. Su llama no se apaga ni con cierzo.',
+  },
+  buitron: {
+    name: 'Buitrón', types: ['Aire', 'Normal'], base: { hp: 72, atk: 76, def: 62, spd: 66 }, exp: 120, catch: 0.3,
+    moves: [[1, 'picotazo'], [1, 'malicioso'], [12, 'tornado'], [20, 'picado'], [28, 'cierzo']],
+    desc: 'Buitre leonado de los Mallos de Riglos. Con sus alas de casi tres metros planea durante horas.',
+  },
   bucardo: {
     name: 'Bucardo', types: ['Roca', 'Hielo'], base: { hp: 95, atk: 105, def: 85, spd: 80 }, exp: 230, catch: 0.08,
     moves: [[1, 'cuernos'], [1, 'ventisca'], [1, 'endurecer'], [1, 'galope']],
@@ -187,7 +204,7 @@ const SPECIES = {
 
 const DEX_ORDER = ['parrillin', 'laurenton', 'isuelin', 'isuelon', 'somontin', 'somontazo',
   'quebranto', 'cierzin', 'mallorroc', 'albahaquin', 'trenzon', 'ranisuela', 'sarrion',
-  'danzante', 'campanon', 'almenazo', 'marmotin', 'truchon', 'arminin', 'nevero', 'aneton', 'bayardo', 'bucardo'];
+  'danzante', 'campanon', 'almenazo', 'marmotin', 'truchon', 'arminin', 'nevero', 'aneton', 'fogaril', 'antorchon', 'buitron', 'bayardo', 'bucardo'];
 
 const ITEMS = {
   ball:   { name: 'Oscaball', price: 20, desc: 'Sirve para capturar Oscamon salvajes.' },

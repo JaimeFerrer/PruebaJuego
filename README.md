@@ -26,7 +26,7 @@ Funciona en el móvil con mandos táctiles.
 
 ## El mapa
 
-Es un único mapa de toda la **provincia de Huesca** (200 × 170 casillas), con el norte arriba. Pueblos, ríos y sierras están en su posición real aproximada. Las ciudades de Huesca y Jaca están ampliadas para que quepan sus monumentos. Con la tecla **M → MAPA** ves la provincia entera y dónde estás.
+Es un único mapa de toda la **provincia de Huesca** (600 × 510 casillas), con el norte arriba. Pueblos, ríos y sierras están en su posición real aproximada. Entre pueblo y pueblo hay **rutas largas**, como en los juegos originales. Cada ruta tiene número y cartel, tramos de hierba alta que hay que cruzar, entrenadores a los lados del camino y algún objeto escondido. Hay 28 rutas y unos 70 entrenadores. Con la tecla **M → MAPA** ves la provincia entera y dónde estás.
 
 - **Huesca** (punto de partida): el Casco Antiguo con el Coso, la Catedral, San Pedro el Viejo, el Palacio de los Reyes de Aragón (primer Gimnasio), la Plaza de Navarra, el Parque Miguel Servet, el río Isuela, Montearagón y el Salto de Roldán.
 - **Hoya de Huesca y Prepirineo**: Ayerbe, el **Castillo de Loarre**, Riglos y sus **Mallos**, el Monasterio de **San Juan de la Peña**, el embalse de La Peña y el puerto de Monrepós por la **Sierra de Guara**.
@@ -38,6 +38,8 @@ Es un único mapa de toda la **provincia de Huesca** (200 × 170 casillas), con 
 - **Los Monegros**: la estepa y Sariñena.
 - **Ríos**: Aragón, Aragón Subordán, Gállego, Ara, Cinca, Ésera, Isuela y Vero.
 
+Los edificios emblemáticos se parecen a los reales: la Catedral de Huesca con su portada gótica y su galería de arquillos, San Pedro el Viejo con su torre hexagonal y el crismón, el Museo de Huesca con su portada barroca, el Círculo Oscense con sus torreones, Loarre con sus cubos y su torre del homenaje, la Catedral de Jaca con su pórtico y el ajedrezado jaqués, la Estación de Canfranc, San Juan de la Peña bajo su roca y la colegiata de Alquézar.
+
 Cada pueblo tiene plaza, iglesia, Centro Oscamon, tienda, varias casas y un **edificio propio** (el Palacio de Ayerbe, el Museo del Traje Ansotano, la Basílica de Graus, el Museo del Vino de Barbastro...). Las casas cambian según la comarca: pizarra y chimeneas troncocónicas en el Pirineo, teja en la Hoya y el Somontano, y adobe en Monegros.
 
 **Se puede entrar en todos los edificios con puerta.** Dentro hay muebles con los que puedes interactuar y alguien que te atiende: la enfermera en los Centros, la dependienta en las tiendas, el jefe de estación, el párroco, los guías de castillos y museos, los vecinos en sus casas y los Líderes en los Gimnasios, donde un aprendiz te reta antes. Para salir, pisa el felpudo verde.
@@ -46,14 +48,15 @@ Con la Medalla Campana puedes coger el **tren Huesca-Canfranc**, con paradas en 
 
 ## Cómo entrenar a tus Oscamon
 
-- Los Oscamon salvajes son más fuertes cuanto más lejos estés de Huesca. Empieza en el **Parque Miguel Servet** (nivel 2-3) y en la ruta del Salto de Roldán (nivel 2-4). Luego ve a la Hoya (4-7), Loarre (6-9) y Riglos (8-11). El Pirineo es para el final (16-32).
+- Los Oscamon salvajes son más fuertes cuanto más lejos estés de Huesca. Empieza en el **Parque Miguel Servet** (nivel 2-3) y en la ruta del Salto de Roldán (nivel 2-4). Luego ve a la Hoya (4-7), Loarre (6-9) y Riglos (8-11). El Pirineo es para el final (16-35).
+- Los entrenadores de cada ruta tienen el nivel de su zona. Úsalos para entrenar entre gimnasio y gimnasio.
 - En el menú de ataques, **▲** marca un ataque muy eficaz y **▼** uno poco eficaz.
 - **Todo el equipo gana experiencia**: el que lucha recibe toda y los demás, la mitad. Captura Oscamon de varios tipos.
 - Cura gratis en cualquier Centro Oscamon, en tu casa, en el balneario de Panticosa o en los refugios de montaña.
 - Si pierdes, apareces en el último Centro Oscamon que visitaste.
 - Junto a tu casa hay una entrenadora que da consejos.
 
-## Los Oscamon (23)
+## Los Oscamon (26)
 
 | | Tipo | Inspiración |
 |---|---|---|
@@ -75,6 +78,9 @@ Con la Medalla Campana puedes coger el **tren Huesca-Canfranc**, con paradas en 
 | Almenazo | Roca | Las almenas del Castillo de Loarre |
 | Marmotín | Normal | Marmota del Pirineo |
 | Truchón | Agua | Trucha de los ríos de montaña |
+| Fogaril | Fuego | El fogaril, el hogar de leña pirenaico |
+| Antorchón | Fuego/Roca | Las antorchas del castillo templario de Monzón |
+| Buitrón | Aire/Normal | El buitre leonado de Riglos |
 | Bayardo (legendario) | Aire/Normal | El caballo de Roldán (Salto de Roldán) |
 | Bucardo (legendario) | Roca/Hielo | La cabra montés del Pirineo (Ordesa) |
 
@@ -82,10 +88,19 @@ Con la Medalla Campana puedes coger el **tren Huesca-Canfranc**, con paradas en 
 
 1. Elige a tu primer Oscamon en el Laboratorio del Profesor Cajal.
 2. Captura Oscamon en la hierba alta y vence a los entrenadores.
-3. Gana las tres medallas:
-   - **Medalla Campana**: Ramiro II el Monje, en Huesca (tipo Roca).
-   - **Medalla Somontano**: Vero, en la bodega de Barbastro (tipo Planta).
-   - **Medalla Oroel**: Nieves, en el Pabellón de Hielo de Jaca (tipo Hielo).
+3. Gana las ocho medallas (puedes verlas en **M → MEDALLAS**):
+
+   | Medalla | Líder | Lugar | Tipo |
+   |---|---|---|---|
+   | Campana | Rey Ramiro II | Museo de Huesca | Roca |
+   | Somontano | Vero | Bodega de Barbastro | Planta |
+   | Templaria | Templario Berenguer | Castillo de Monzón | Fuego |
+   | Oroel | Nieves | Pabellón de Hielo de Jaca | Hielo |
+   | Gállego | Iris | Sabiñánigo | Agua |
+   | Peña Montañesa | Guillem | Castillo de Aínsa | Normal |
+   | Aneto | Pirene | Benasque | Aire |
+   | Monte Perdido | Guardiana Lucía | Torla-Ordesa (necesitas 7 medallas) | Mixto |
+
 4. Atrapa a los legendarios Bayardo y Bucardo y completa el Oscadex.
 
 La partida se guarda en el navegador (`localStorage`) desde el menú. También se guarda sola al curar a tus Oscamon en el Centro.

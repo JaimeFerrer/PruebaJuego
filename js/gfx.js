@@ -546,6 +546,33 @@ const MON_DRAW = {
     for (const [x, y] of [[20, 13], [26, 15], [16, 15]]) p.px(x, y, '#e8f4ff');
     p.tri(28, 16, 31, 14, 29, 20, '#6a5038');
   },
+  fogaril(p) {
+    p.rect(6, 22, 20, 8, '#5a5a62'); p.rect(6, 22, 20, 2, '#7a7a82');
+    p.tri(8, 22, 16, 4, 24, 22, '#e83820'); p.tri(11, 22, 16, 9, 21, 22, '#ffb020'); p.tri(13, 22, 16, 14, 19, 22, '#fff060');
+    p.rect(12, 16, 2, 3, '#202020'); p.rect(18, 16, 2, 3, '#202020'); p.px(12, 16, '#fff'); p.px(18, 16, '#fff');
+    p.rect(14, 20, 4, 1, '#802000');
+    for (const x of [8, 13, 18, 23]) p.rect(x, 26, 3, 2, '#7a4a2a');
+  },
+  antorchon(p) {
+    p.rect(12, 14, 8, 16, '#8a7a60'); p.rect(12, 14, 2, 16, '#a89878');
+    for (let y = 17; y < 30; y += 4) p.rect(12, y, 8, 1, '#6a5a40');
+    p.rect(9, 12, 14, 3, '#5a4a30');
+    p.tri(9, 12, 16, -2, 23, 12, '#e83820'); p.tri(11, 12, 16, 2, 21, 12, '#ffb020'); p.tri(13, 12, 16, 6, 19, 12, '#fff060');
+    p.rect(13, 19, 2, 2, '#ffe060'); p.rect(17, 19, 2, 2, '#ffe060');
+    p.rect(5, 18, 7, 2, '#8a7a60'); p.rect(20, 18, 7, 2, '#8a7a60');
+    p.rect(14, 23, 4, 1, '#3a2a1a');
+  },
+  buitron(p) {
+    p.ball(6, 15, 7, 5, '#7a5a3a'); p.ball(26, 15, 7, 5, '#7a5a3a');
+    for (const x of [0, 3, 6]) p.rect(x, 18, 2, 5, '#4a3020');
+    for (const x of [24, 27, 30]) p.rect(x, 18, 2, 5, '#4a3020');
+    p.ball(16, 20, 7, 8, '#a07850');
+    p.ell(16, 13, 5, 2.5, '#f0e8d8');
+    p.ball(16, 8, 4, 4, '#e8dcc8');
+    p.rect(13, 7, 2, 2, '#202020'); p.rect(18, 7, 2, 2, '#202020'); p.px(13, 7, '#e0a020');
+    p.tri(14.5, 10, 17.5, 10, 16, 14, '#e8c060');
+    p.rect(13, 27, 2, 3, '#8a8a8a'); p.rect(18, 27, 2, 3, '#8a8a8a');
+  },
   bayardo(p) {
     p.ball(20, 12, 7, 4, '#cfe4ff'); p.tri(15, 11, 28, 4, 25, 13, '#e8f2ff');
     for (const x of [13, 16, 23, 26]) { p.rect(x, 22, 2, 7, '#e4e4ec'); p.rect(x, 28, 2, 2, '#5a5a6a'); }
@@ -639,6 +666,19 @@ function drawBuilding(ctx, b, sx, sy) {
       door('#5a6a7a'); outline(); break;
     }
     case 'casino': {
+      if (b.id === 'casino') {
+        // Círculo Oscense: palacete modernista con dos torreones rematados por cúpulas
+        R(0, 10, W, H - 10, '#c87a5a');
+        for (let y = 16; y < H; y += 8) R(0, y, W, 2, '#efe2c8');
+        for (const tx of [0, W - 16]) {
+          R(tx, 0, 16, H, '#d08a68'); R(tx, 14, 16, 2, '#efe2c8');
+          ctx.fillStyle = '#4a8a7a'; ctx.beginPath(); ctx.arc(sx + tx + 8, sy + 6, 8, Math.PI, 0); ctx.fill();
+          R(tx + 7, -4, 2, 4, '#3a6a5a'); R(tx + 5, 20, 6, 10, '#7fb0e6');
+        }
+        for (let i = 0; i < 3; i++) { const x = 22 + i * 13; if (Math.abs(x + 4 - (doorX + 8)) < 6) continue; R(x, 20, 8, 14, '#7fb0e6'); ctx.fillStyle = '#7fb0e6'; ctx.beginPath(); ctx.arc(sx + x + 4, sy + 20, 4, Math.PI, 0); ctx.fill(); }
+        R(18, 34, W - 36, 2, '#3a3a3a');
+        door('#5a3a2a'); outline(); break;
+      }
       R(0, 6, W, H - 6, '#f0e8d4'); R(0, 6, W, 3, '#c8b890');
       ctx.fillStyle = '#4a9a7a'; ctx.beginPath(); ctx.arc(sx + W / 2, sy + 12, 10, Math.PI, 0); ctx.fill();
       R(W / 2 - 1, 0, 2, 3, '#3a7a5a');
@@ -646,34 +686,80 @@ function drawBuilding(ctx, b, sx, sy) {
       door('#5a3a2a'); outline(); break;
     }
     case 'cathedral': {
-      const st = '#dcc79c', dk = '#b8a276';
-      R(0, 26, W, H - 26, st);
-      for (let y = 30; y < H; y += 6) R(0, y, W, 1, shade(st, 0.92));
-      poly([[6, 28], [42, 4], [78, 28]], st); poly([[6, 28], [42, 4], [42, 8], [12, 28]], dk);
+      // Catedral de Huesca: torre a la izquierda, galería de arquillos bajo el alero
+      // y portada gótica con arquivoltas protegida por un tejaroz de madera
+      const st = '#d6c092', dk = '#b49c6c';
+      R(22, 18, W - 22, H - 18, st);
+      for (let y = 40; y < H; y += 7) R(22, y, W - 22, 1, shade(st, 0.93));
+      R(20, 14, W - 20, 5, '#6a4628'); R(20, 18, W - 20, 1, '#4a2e18');
+      for (let x = 26; x < W - 4; x += 7) { R(x, 22, 4, 9, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + x + 2, sy + 22, 2, Math.PI, 0); ctx.fill(); }
+      R(22, 33, W - 22, 2, dk);
       // torre
-      R(82, 0, 30, H, st); R(82, 0, 2, H, dk); R(110, 0, 2, H, dk);
-      for (const x of [86, 98]) { R(x, 8, 8, 16, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + x + 4, sy + 8, 4, Math.PI, 0); ctx.fill(); }
-      R(86, 30, 22, 2, dk); R(80, 0, 34, 4, dk);
-      for (let x = 80; x < 114; x += 6) R(x, -3, 3, 3, dk);
-      // rosetón
-      circ(42, 34, 10, dk); circ(42, 34, 8.5, '#3a5aa0');
-      for (let a = 0; a < 8; a++) { const ang = a * Math.PI / 4; circ(42 + Math.cos(ang) * 5, 34 + Math.sin(ang) * 5, 2, a % 2 ? '#d04040' : '#f0c040'); }
-      circ(42, 34, 2.5, '#f0e0a0');
-      // pináculos
-      for (const x of [4, 76]) poly([[x - 3, 28], [x, 14], [x + 3, 28]], dk);
-      // portada gótica con arquivoltas
+      R(0, 6, 24, H - 6, shade(st, 1.04)); R(0, 6, 2, H - 6, dk); R(22, 6, 2, H - 6, dk);
+      poly([[2, 6], [5, -2], [19, -2], [22, 6]], shade(st, 0.95)); R(4, -2, 16, 1, dk);
+      for (const y of [10, 26]) { R(8, y, 8, 11, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + 12, sy + y, 4, Math.PI, 0); ctx.fill(); }
+      R(0, 44, 24, 2, dk);
+      // portada
       const px = doorX + 8;
-      for (let k = 0; k < 4; k++) {
-        ctx.fillStyle = k % 2 ? shade(st, 0.8) : shade(st, 0.95);
-        ctx.beginPath(); const w = 22 - k * 4;
-        ctx.moveTo(sx + px - w / 2, sy + H); ctx.lineTo(sx + px - w / 2, sy + 62 + k * 4);
-        ctx.quadraticCurveTo(sx + px - w / 2, sy + 50 + k * 4, sx + px, sy + 46 + k * 4);
-        ctx.quadraticCurveTo(sx + px + w / 2, sy + 50 + k * 4, sx + px + w / 2, sy + 62 + k * 4);
+      R(px - 26, 38, 52, 4, '#6a4628'); poly([[px - 28, 40], [px, 30], [px + 28, 40]], '#7a5232');
+      for (let k = 0; k < 5; k++) {
+        ctx.fillStyle = k % 2 ? shade(st, 0.78) : shade(st, 0.94);
+        ctx.beginPath(); const w = 34 - k * 5;
+        ctx.moveTo(sx + px - w / 2, sy + H); ctx.lineTo(sx + px - w / 2, sy + 62 + k * 2);
+        ctx.quadraticCurveTo(sx + px - w / 2, sy + 48 + k * 3, sx + px, sy + 44 + k * 3);
+        ctx.quadraticCurveTo(sx + px + w / 2, sy + 48 + k * 3, sx + px + w / 2, sy + 62 + k * 2);
         ctx.lineTo(sx + px + w / 2, sy + H); ctx.fill();
       }
-      R(px - 5, H - 16, 10, 16, '#5a3a22'); R(px - 0.5, H - 16, 1, 16, '#3a2414');
-      for (const x of [14, 66]) { R(x, 52, 8, 18, '#3a5aa0'); R(x + 3.5, 52, 1, 18, dk); ctx.fillStyle = '#3a5aa0'; ctx.beginPath(); ctx.arc(sx + x + 4, sy + 52, 4, Math.PI, 0); ctx.fill(); }
-      ctx.strokeStyle = '#2a2a30'; ctx.strokeRect(sx + 0.5, sy + 26.5, 81, H - 27); ctx.strokeRect(sx + 82.5, sy + 0.5, 29, H - 1);
+      for (let k = 0; k < 4; k++) { R(px - 16 + k * 2, 64, 1, 30, '#e8dcbc'); R(px + 15 - k * 2, 64, 1, 30, '#e8dcbc'); }
+      R(px - 6, H - 18, 12, 18, '#5a3a22'); R(px - 0.5, H - 18, 1, 18, '#3a2414');
+      for (const x of [34, W - 16]) { R(x, 50, 6, 14, '#3a5aa0'); ctx.fillStyle = '#3a5aa0'; ctx.beginPath(); ctx.arc(sx + x + 3, sy + 50, 3, Math.PI, 0); ctx.fill(); }
+      ctx.strokeStyle = '#2a2a30'; ctx.strokeRect(sx + 22.5, sy + 14.5, W - 23, H - 15); ctx.strokeRect(sx + 0.5, sy + 6.5, 23, H - 7);
+      break;
+    }
+    case 'sanpedro': {
+      // San Pedro el Viejo: románico, torre hexagonal y crismón sobre la puerta
+      const st = '#d2aa6c';
+      R(20, 18, W - 20, H - 18, st);
+      poly([[18, 20], [W / 2 + 10, 8], [W, 20]], '#b45a3a');
+      for (let y = 26; y < H; y += 6) R(20, y, W - 20, 1, shade(st, 0.92));
+      R(3, 6, 17, H - 6, shade(st, 0.96));
+      for (const x of [3, 8, 14]) R(x, 6, 1, H - 6, shade(st, 0.78));
+      poly([[1, 7], [11.5, -4], [22, 7]], '#9a4a2e'); R(1, 6, 21, 2, shade(st, 0.7));
+      for (const x of [5, 15]) { R(x, 12, 3, 8, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + x + 1.5, sy + 12, 1.5, Math.PI, 0); ctx.fill(); }
+      const px = doorX + 8;
+      for (let k = 0; k < 3; k++) { ctx.fillStyle = k % 2 ? shade(st, 0.76) : shade(st, 0.9); ctx.beginPath(); ctx.arc(sx + px, sy + H - 14, 13 - k * 2.5, Math.PI, 0); ctx.fill(); }
+      circ(px, H - 19, 4, '#e8d8b0'); ctx.strokeStyle = '#7a5a30'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(sx + px - 3, sy + H - 22); ctx.lineTo(sx + px + 3, sy + H - 16); ctx.moveTo(sx + px + 3, sy + H - 22); ctx.lineTo(sx + px - 3, sy + H - 16); ctx.moveTo(sx + px, sy + H - 23); ctx.lineTo(sx + px, sy + H - 15); ctx.stroke(); ctx.lineWidth = 1;
+      R(px - 5, H - 13, 10, 13, '#5a3a22');
+      circ(W - 14, 30, 3, '#3a3028');
+      ctx.strokeStyle = '#2a2a30'; ctx.strokeRect(sx + 20.5, sy + 18.5, W - 21, H - 19); ctx.strokeRect(sx + 3.5, sy + 6.5, 16, H - 7);
+      break;
+    }
+    case 'jacacat': {
+      // Catedral de Jaca: románica, pórtico de entrada, torre cuadrada y ajedrezado jaqués
+      const st = '#cdb488';
+      R(0, 20, W - 22, H - 20, st);
+      poly([[0, 22], [(W - 22) / 2, 10], [W - 22, 22]], '#a85a3a');
+      for (let x = 0; x < W - 22; x += 4) { R(x, 22, 2, 2, '#3a3028'); R(x + 2, 24, 2, 2, '#3a3028'); }
+      R(W - 22, 0, 22, H, shade(st, 1.04)); R(W - 22, 0, 2, H, shade(st, 0.8));
+      poly([[W - 24, 4], [W - 11, -6], [W, 4]], '#9a4a2e');
+      R(W - 16, 10, 10, 12, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + W - 11, sy + 10, 5, Math.PI, 0); ctx.fill();
+      for (let x = W - 22; x < W; x += 4) { R(x, 30, 2, 2, '#3a3028'); R(x + 2, 32, 2, 2, '#3a3028'); }
+      R(doorX - 18, H - 30, 50, 30, shade(st, 0.92)); poly([[doorX - 20, H - 30], [doorX + 7, H - 38], [doorX + 34, H - 30]], '#a85a3a');
+      for (let i = 0; i < 3; i++) { const x = doorX - 14 + i * 16; R(x, H - 24, 10, 24, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + x + 5, sy + H - 24, 5, Math.PI, 0); ctx.fill(); }
+      R(doorX + 4, H - 14, 8, 14, '#6a4028');
+      circ(20, 40, 3, '#3a3028');
+      ctx.strokeStyle = '#2a2a30'; ctx.strokeRect(sx + 0.5, sy + 20.5, W - 23, H - 21); ctx.strokeRect(sx + W - 21.5, sy + 0.5, 21, H - 1);
+      break;
+    }
+    case 'colegiata': {
+      // Colegiata-castillo de Alquézar sobre la roca
+      R(0, 30, W, H - 30, '#c8904a'); for (let x = 2; x < W; x += 9) R(x, 32, 2, H - 32, '#a87038');
+      R(4, 14, W - 8, 22, '#d8c49a'); for (let x = 4; x < W - 6; x += 7) R(x, 10, 4, 5, '#d8c49a');
+      R(W - 26, 0, 16, 34, '#e0cca0'); poly([[W - 28, 2], [W - 18, -8], [W - 8, 2]], '#9a4a2e');
+      R(W - 22, 6, 8, 9, '#3a3028');
+      for (let i = 0; i < 3; i++) { const x = 10 + i * 12; R(x, 22, 8, 12, '#5a4a3a'); ctx.fillStyle = '#5a4a3a'; ctx.beginPath(); ctx.arc(sx + x + 4, sy + 22, 4, Math.PI, 0); ctx.fill(); }
+      R(doorX + 3, H - 14, 10, 14, '#3a2a1a'); ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 14, 5, Math.PI, 0); ctx.fill();
       break;
     }
     case 'church': {
@@ -699,17 +785,20 @@ function drawBuilding(ctx, b, sx, sy) {
       door('#6a3a1a'); outline(); break;
     }
     case 'gym': {
-      const st = '#aeaab0';
-      R(0, 8, W, H - 8, st);
-      for (let y = 12; y < H; y += 6) for (let x = (y / 6) % 2 ? 0 : 6; x < W; x += 12) R(x, y, 1, 6, shade(st, 0.85));
-      for (let y = 12; y < H; y += 6) R(0, y, W, 1, shade(st, 0.85));
-      for (let x = 0; x < W; x += 8) R(x, 3, 5, 5, st);
-      R(0, 7, W, 2, shade(st, 0.7));
-      // estandarte de Aragón
-      for (const bx of [8, W - 20]) { R(bx, 14, 12, 26, '#f4d020'); for (let k = 0; k < 4; k++) R(bx + 1 + k * 3, 14, 1.5, 26, '#d01818'); poly([[bx, 40], [bx + 6, 36], [bx + 12, 40]], st); }
-      R(W / 2 - 22, 14, 44, 9, '#2a2a40'); T('GIMNASIO', W / 2, 16, '#f4d020');
-      R(doorX + 1, H - 17, 14, 17, '#3a2a1a'); ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 17, 7, Math.PI, 0); ctx.fill();
-      R(doorX + 3, H - 15, 10, 15, '#8a3a2a'); R(doorX + 7.5, H - 15, 1, 15, '#5a2010');
+      // Museo de Huesca: edificio octogonal con portada barroca (antigua Universidad Sertoriana)
+      const st = '#cfbc96', dk = '#a8946c';
+      R(0, 14, W, H - 14, st);
+      poly([[0, 16], [14, 4], [W - 14, 4], [W, 16]], '#a85a3a'); R(14, 4, W - 28, 2, '#8a4a2e');
+      for (let x = 10; x < W; x += 20) R(x, 16, 1, H - 16, dk);
+      for (const x of [4, 24, 62, 82]) { R(x, 22, 9, 12, '#4a5a7a'); R(x - 1, 21, 11, 2, dk); }
+      const px = doorX + 8;
+      R(px - 20, 18, 40, H - 18, shade(st, 1.05));
+      for (const x of [px - 18, px - 13, px + 10, px + 15]) { R(x, 26, 3, H - 26, '#ece0c4'); R(x - 1, 24, 5, 2, dk); R(x - 1, H - 2, 5, 2, dk); }
+      poly([[px - 20, 26], [px - 6, 18], [px - 6, 22], [px - 16, 26]], dk); poly([[px + 20, 26], [px + 6, 18], [px + 6, 22], [px + 16, 26]], dk);
+      R(px - 4, 16, 8, 8, '#f4d020'); for (let k = 0; k < 4; k++) R(px - 3.5 + k * 2, 16, 1, 8, '#d01818');
+      R(px - 7, H - 26, 14, 26, '#3a2a1a'); ctx.fillStyle = '#3a2a1a'; ctx.beginPath(); ctx.arc(sx + px, sy + H - 26, 7, Math.PI, 0); ctx.fill();
+      R(px - 5, H - 24, 10, 24, '#8a3a2a'); R(px - 0.5, H - 24, 1, 24, '#5a2010');
+      R(W / 2 - 22, 6, 44, 7, '#2a2a40'); T('GIMNASIO', W / 2, 7, '#f4d020');
       outline(); break;
     }
     case 'station': {
@@ -729,40 +818,68 @@ function drawBuilding(ctx, b, sx, sy) {
       for (const tx of [8, W - 14]) R(tx, 12, 4, 8, '#2a2620');
       R(doorX + 2, H - 20, 12, 20, '#2a2620'); ctx.fillStyle = '#2a2620'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 20, 6, Math.PI, 0); ctx.fill();
       R(30, 26, 6, 3, shade(st, 0.7)); R(70, 40, 5, 3, shade(st, 0.7));
+      if (b.id === 'monzon_castillo') { R(W / 2 - 0.5, -10, 1, 14, '#404040'); R(W / 2, -10, 10, 8, '#f4f4f4'); R(W / 2 + 4, -10, 2, 8, '#c01818'); R(W / 2, -7, 10, 2, '#c01818'); }
       break;
     }
     case 'loarre': {
+      // Castillo de Loarre: muralla con cubos, iglesia con ábside y torre del homenaje
       const st = '#c8a878', dk = '#9a7a50';
-      R(0, 20, W, H - 20, st);
-      for (let y = 26; y < H; y += 6) R(0, y, W, 1, shade(st, 0.88));
-      for (const [tx, tw, th] of [[0, 18, 0], [W - 26, 26, -10], [50, 16, 6]]) {
-        R(tx, th + 4, tw, H - th - 4, shade(st, 1.06)); R(tx, th + 4, 2, H - th - 4, dk);
-        for (let x = tx; x < tx + tw; x += 5) R(x, th, 3, 4, shade(st, 1.06));
-        R(tx + tw / 2 - 2, th + 14, 4, 8, '#2a2620');
+      R(40, 20, 50, 40, shade(st, 0.97));
+      ctx.fillStyle = shade(st, 1.05); ctx.beginPath(); ctx.arc(sx + 65, sy + 30, 24, Math.PI, 0); ctx.fill();
+      for (const x of [50, 62, 74]) { R(x, 22, 4, 10, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + x + 2, sy + 22, 2, Math.PI, 0); ctx.fill(); }
+      R(98, 0, 28, 62, shade(st, 1.08)); R(98, 0, 2, 62, dk); for (let x = 98; x < 126; x += 6) R(x, -4, 4, 4, shade(st, 1.08));
+      R(108, 14, 6, 10, '#2a2620'); R(108, 34, 6, 8, '#2a2620');
+      R(12, 12, 22, 50, shade(st, 1.02)); for (let x = 12; x < 34; x += 6) R(x, 8, 4, 4, shade(st, 1.02)); R(20, 22, 5, 8, '#2a2620');
+      R(0, 56, W, H - 56, st); for (let x = 0; x < W; x += 8) R(x, 51, 5, 5, st);
+      for (let y = 62; y < H; y += 7) R(0, y, W, 1, shade(st, 0.86));
+      for (const cx of [10, 52, 96, 134]) {          // cubos (torres semicirculares de la muralla)
+        R(cx - 8, 46, 16, H - 46, shade(st, 1.07)); R(cx + 4, 46, 4, H - 46, shade(st, 0.9)); R(cx - 8, 46, 2, H - 46, shade(st, 1.15));
+        for (let x = cx - 8; x < cx + 8; x += 6) R(x, 42, 4, 4, shade(st, 1.07));
+        R(cx - 1, 58, 2, 6, '#2a2620');
       }
-      for (let x = 18; x < W - 26; x += 6) R(x, 15, 4, 5, st);
-      ctx.fillStyle = '#5a4a3a'; ctx.beginPath(); ctx.arc(sx + 34, sy + 40, 9, Math.PI, 0); ctx.fill(); R(25, 40, 18, 4, '#5a4a3a');
       R(doorX + 3, H - 20, 10, 20, '#2a2620'); ctx.fillStyle = '#2a2620'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 20, 5, Math.PI, 0); ctx.fill();
       break;
     }
     case 'monastery': {
-      const st = '#c8b088';
-      R(0, 10, W, H - 10, st);
-      poly([[0, 12], [W / 2, 2], [W, 12]], '#a8583a');
-      for (let i = 0; i < 5; i++) { const x = 8 + i * 20; R(x, 30, 12, H - 30, shade(st, 0.7)); ctx.fillStyle = shade(st, 0.7); ctx.beginPath(); ctx.arc(sx + x + 6, sy + 30, 6, Math.PI, 0); ctx.fill(); }
-      R(doorX + 3, H - 14, 10, 14, '#5a3a22');
-      circ(W / 2, 20, 4, '#3a3028');
-      outline(); break;
+      // San Juan de la Peña: el monasterio se cobija bajo una enorme roca
+      R(0, 0, W, 30, '#8a7a68');
+      ctx.fillStyle = '#9c8c78'; ctx.beginPath(); ctx.moveTo(sx, sy + 30); ctx.quadraticCurveTo(sx + W / 2, sy + 44, sx + W, sy + 30); ctx.lineTo(sx + W, sy); ctx.lineTo(sx, sy); ctx.fill();
+      for (const [x, y] of [[10, 8], [40, 14], [80, 6], [96, 20], [24, 22]]) R(x, y, 10, 2, '#6a5a4a');
+      R(4, 34, W - 8, H - 34, '#c8b088');
+      for (let i = 0; i < 6; i++) { const x = 8 + i * 17; if (Math.abs(x + 5 - (doorX + 8)) < 8) continue; R(x, 44, 10, H - 46, '#4a3a2a'); ctx.fillStyle = '#4a3a2a'; ctx.beginPath(); ctx.arc(sx + x + 5, sy + 44, 5, Math.PI, 0); ctx.fill(); R(x + 4, 44, 2, H - 46, '#d8c8a0'); }
+      R(doorX + 3, H - 16, 10, 16, '#5a3a22'); ctx.fillStyle = '#5a3a22'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 16, 5, Math.PI, 0); ctx.fill();
+      break;
     }
     case 'bigstation': {
-      R(0, 8, W, H - 8, '#e8dcc0');
-      R(0, 0, W, 10, '#4a5868'); for (let x = 0; x < W; x += 6) R(x, 2, 1, 8, '#6a7888');
-      for (let x = 4; x < W - 4; x += 7) { R(x, 16, 4, 8, '#5a7a9a'); R(x, 30, 4, 10, '#5a7a9a'); }
-      R(W / 2 - 18, 0, 36, 14, '#e8dcc0'); R(W / 2 - 20, 0, 40, 3, '#4a5868');
-      circ(W / 2, 8, 4, '#f4f0e0'); R(W / 2 - 0.5, 5, 1, 3, '#202020'); R(W / 2, 7.5, 3, 1, '#202020');
-      R(W / 2 - 34, 46, 68, 9, '#2a3440'); T('CANFRANC', W / 2, 48, '#f0d080');
-      R(doorX + 2, H - 9, 12, 9, '#3a2a1a'); R(doorX + 3, H - 8, 10, 8, '#8fb0c8');
+      // Estación Internacional de Canfranc: fachada larguísima, tejado de pizarra con buhardillas y pabellón central
+      R(0, 18, W, H - 18, '#ece2c8');
+      R(0, 6, W, 14, '#3e4656'); for (let x = 4; x < W; x += 9) { R(x, 9, 5, 7, '#ece2c8'); R(x + 1, 10, 3, 5, '#5a7a9a'); }
+      for (let x = 3; x < W - 3; x += 6) { R(x, 24, 3, 9, '#5a7a9a'); R(x, 38, 3, 10, '#5a7a9a'); }
+      for (const [x, w] of [[0, 20], [W - 20, 20], [W / 2 - 22, 44]]) { R(x, 4, w, H - 4, '#e4d8bc'); R(x, 0, w, 8, '#3e4656'); }
+      ctx.fillStyle = '#3e4656'; ctx.beginPath(); ctx.arc(sx + W / 2, sy + 4, 10, Math.PI, 0); ctx.fill();
+      circ(W / 2, 16, 5, '#f4f0e0'); R(W / 2 - 0.5, 12, 1, 4, '#202020'); R(W / 2, 15.5, 3, 1, '#202020');
+      R(W / 2 - 30, 50, 60, 8, '#2a3440'); T('CANFRANC', W / 2, 51.5, '#f0d080');
+      R(doorX + 2, H - 7, 12, 7, '#3a2a1a'); R(doorX + 3, H - 6, 10, 6, '#8fb0c8');
       outline(); break;
+    }
+    case 'pool': {
+      // Gimnasio del Gállego (tipo Agua)
+      R(0, 10, W, H - 10, '#f4f8fc'); R(0, 6, W, 6, '#2a6ab0');
+      for (let x = 0; x < W; x += 8) { ctx.fillStyle = '#4a9ae0'; ctx.beginPath(); ctx.arc(sx + x + 4, sy + 30, 4, Math.PI, 0); ctx.fill(); }
+      R(0, 30, W, 4, '#4a9ae0');
+      R(W / 2 - 22, 14, 44, 9, '#1a3a70'); T('GIMNASIO', W / 2, 16, '#a8e0ff');
+      R(doorX + 2, H - 14, 12, 14, '#1a3a70'); R(doorX + 3, H - 13, 10, 13, '#c4ecff');
+      outline(); break;
+    }
+    case 'chalet': {
+      // Gimnasios de montaña (Benasque y Ordesa): chalé de madera y pizarra
+      const em = b.gym === 'ordesa' ? '#e8e0c0' : '#a8c8f0';
+      R(2, 22, W - 4, H - 22, '#a8743f'); for (let y = 26; y < H; y += 5) R(2, y, W - 4, 1, '#7c5430');
+      poly([[-2, 24], [W / 2, -2], [W + 2, 24]], '#3e4452'); poly([[6, 24], [W / 2, 4], [W - 6, 24]], '#4a5060');
+      R(4, 34, W - 8, 2, '#5a3a20'); for (let x = 6; x < W - 6; x += 5) R(x, 30, 1, 4, '#5a3a20');
+      circ(W / 2, 14, 5, em); poly([[W / 2 - 4, 16], [W / 2, 10], [W / 2 + 4, 16]], '#5a6a7a');
+      R(W / 2 - 22, 38, 44, 8, '#2a2a3a'); T('GIMNASIO', W / 2, 39.5, em);
+      door('#5a3a20'); outline(); break;
     }
     case 'tower': {
       const st = '#c8b488';

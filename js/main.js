@@ -34,12 +34,12 @@ function text(str, x, y, color, size = 6, align = 'left') {
 function newState() {
   return {
     party: [], box: [], bag: { ball: 0, potion: 0, super: 0 }, money: 100,
-    flags: {}, seen: {}, caught: {}, badges: 0, map: 'world', pos: { ...WORLD_START },
+    flags: {}, seen: {}, caught: {}, badges: 0, map: 'world', worldVer: WORLD_VER, pos: { ...WORLD_START },
   };
 }
 function markSeen(sp) { G.seen[sp] = true; }
 function markCaught(sp) { G.seen[sp] = true; G.caught[sp] = true; }
-const badgeCount = () => ['badge', 'badgeBarbastro', 'badgeJaca'].filter(f => G.flags[f]).length;
+const badgeCount = () => Object.values(GYMS).filter(g => G.flags[g.flag]).length;
 function setMap(id) {
   CUR = MAPS[id] || MAPS.world;
   if (!CUR.tiles) CUR.tiles = CUR.build();
@@ -252,6 +252,7 @@ async function exitInterior() {
 
 // Lo que pasa al hablar con quien atiende el edificio
 async function hostScript(b) {
+  if (b.gym) return gymScript(b.gym);
   if (b.station) return trainScript(b);
   if (b.kind === 'center') return centerScript(b.town || (b.id === 'j_centro' ? 'Jaca' : 'Huesca'));
   if (b.kind === 'shop') return shopScript();
@@ -263,7 +264,6 @@ async function buildingScript(b) {
     case 'lab': return labScript();
     case 'centro': return centerScript();
     case 'tienda': return shopScript();
-    case 'gym': return gymScript();
     case 'hogar': {
       await say('TU MADRE: ¡Hola, cariño! Pareces cansado. Descansa un poco.');
       healParty(); Sound.heal(); await sleep(600);
@@ -299,7 +299,6 @@ async function buildingScript(b) {
     case 'casa2': return say('Un señor mayor ve el fútbol: "¡Aúpa SD Huesca!". Mejor no molestar.');
     case 'j_centro': return centerScript();
     case 'j_tienda': return shopScript();
-    case 'j_gym': return jacaGymScript();
     case 'j_catedral': {
       await say('La Catedral de San Pedro de Jaca es del siglo XI. Fíjate en el ajedrezado jaqués que decora sus muros.');
       if (!G.flags.j_sacristan) {
@@ -335,7 +334,6 @@ async function buildingScript(b) {
     case 'monzon_castillo':
       await say('El Castillo de Monzón fue de los templarios. Aquí se crió de niño el rey Jaime I el Conquistador.');
       return say('Desde sus murallas se ve el río Cinca serpenteando por la llanura.');
-    case 'b_gym': return barbastroGymScript();
     case 'refugio': {
       await say('REFUGIO DE GÓRIZ: Al pie del Monte Perdido, a 2.200 m. El guarda te da algo caliente.');
       healParty(); Sound.heal(); await sleep(600);
@@ -379,54 +377,6 @@ async function travel(to) {
   await say(`¡Has llegado a la estación de ${STATIONS[to].name}!`);
 }
 
-async function barbastroGymScript() {
-  const again = !!G.flags.badgeBarbastro;
-  const team = again ? [['albahaquin', 24], ['somontin', 24], ['ranisuela', 24], ['somontazo', 26]]
-    : [['albahaquin', 14], ['somontin', 15], ['somontazo', 17]];
-  if (again) {
-    await say('VERO: ¡Hola de nuevo! Esta añada mis Oscamon están aún mejor.');
-    say('¿Quieres una revancha?', { wait: false });
-    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
-  } else {
-    await say('Entras en la bodega. Huele a madera de roble y a uva madura...');
-    await say('VERO: ¡Bienvenido al Somontano! Soy Vero, Líder del Gimnasio de Barbastro.');
-    await say('VERO: Mis Oscamon de tipo Planta crecen entre las viñas. Contra el fuego sufren... ¡pero no se lo digas a nadie!');
-  }
-  const r = await battle({ trainer: { name: 'Líder Vero', pal: ['#6a2a4a', '#e8d8c0', '#4a2a3a'], money: again ? 250 : 350,
-    lose: '¡Qué buena cosecha la tuya!', team }, bg: 'grass' });
-  if (r !== 'win' || again) return;
-  G.flags.badgeBarbastro = true;
-  await say('VERO: Te has ganado la MEDALLA SOMONTANO. ¡Salud!');
-  Sound.catch();
-  await say('¡Has conseguido la MEDALLA SOMONTANO!');
-  await say('VERO: La siguiente Líder está en Jaca, en el Pabellón de Hielo. Allí hace mucho frío: lleva Oscamon de fuego o de roca.');
-  saveGame(true);
-}
-
-async function jacaGymScript() {
-  const team = G.flags.badgeJaca
-    ? [['nevero', 26], ['arminin', 26], ['mallorroc', 26], ['aneton', 28]]
-    : [['nevero', 17], ['arminin', 18], ['aneton', 20]];
-  if (G.flags.badgeJaca) {
-    await say('NIEVES: ¡Hola de nuevo, campeón del Alto Aragón!');
-    say('¿Quieres una revancha sobre el hielo?', { wait: false });
-    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
-  } else {
-    await say('Entras en el Pabellón de Hielo de Jaca. Hace un frío que pela y el suelo resbala...');
-    await say('NIEVES: ¡Bienvenido a la pista! Soy Nieves, Líder del Gimnasio de Jaca.');
-    await say('NIEVES: Mis Oscamon de hielo entrenan en las pistas de Candanchú y Astún. ¿Aguantarás el frío?');
-  }
-  const r = await battle({ trainer: { name: 'Líder Nieves', pal: ['#eef6ff', '#3a7ad0', '#2a3a6a'], money: G.flags.badgeJaca ? 250 : 400,
-    lose: '¡Me has derretido! Tus Oscamon arden de energía.', team }, bg: 'snow' });
-  if (r !== 'win' || G.flags.badgeJaca) return;
-  G.flags.badgeJaca = true;
-  await say('NIEVES: Te la has ganado. ¡La MEDALLA OROEL!');
-  Sound.catch();
-  await say('¡Has conseguido la MEDALLA OROEL!');
-  await say(badgeCount() >= 3 ? '¡Tienes las tres medallas! Eres el CAMPEÓN DEL ALTO ARAGÓN. De Huesca al Pirineo, todos conocen tu nombre.' : 'Te falta alguna medalla para ser campeón del Alto Aragón. ¡Sigue explorando!');
-  saveGame(true);
-}
-
 async function labScript() {
   if (!G.party.length) {
     await say('PROF. CAJAL: ¡Hola! Soy el Profesor Cajal. Estudio a los OSCAMON, las criaturas del Alto Aragón.');
@@ -451,7 +401,8 @@ async function labScript() {
     await say('Empieza por la hierba alta del Parque Miguel Servet: allí los Oscamon son débiles, de nivel 2 o 3.');
     await say('Cuanto más lejos de Huesca vayas, más fuertes serán. El Pirineo es para entrenadores expertos.');
     await say('En combate, los ataques marcados con ▲ son muy eficaces y los marcados con ▼, poco eficaces.');
-    await say('Hay tres Gimnasios: Huesca (Ramiro II), Barbastro (Vero) y Jaca (Nieves). ¡Consigue las tres medallas!');
+    await say('Hay ocho Gimnasios repartidos por la provincia, uno de cada tipo. El primero está aquí, en Huesca: Ramiro II, en el Palacio.');
+    await say('Entre pueblo y pueblo hay rutas largas, con hierba alta y entrenadores. ¡Prepárate bien antes de salir!');
     await say('Pulsa MENÚ (tecla M) para ver el MAPA de la provincia, tu equipo, la mochila y para guardar. ¡Suerte!');
     saveGame(true);
     return;
@@ -522,28 +473,78 @@ async function shopScript() {
   }
 }
 
-async function gymScript() {
-  if (!G.party.length) return say('Un guardia te detiene: "Sin Oscamon no se entra en el Palacio, joven".');
-  if (G.flags.badge) {
-    await say('RAMIRO II: ¡La campana repica en tu honor, campeón de Huesca!');
-    say('¿Quieres una revancha?', { wait: false });
-    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
-    await say('RAMIRO II: ¡Esta vez sonará más fuerte!');
-    await battle({ trainer: { name: 'Rey Ramiro II', pal: GYM_PAL, money: 200, lose: '¡Sigues siendo digno de la corona!', team: [['mallorroc', 22], ['danzante', 22], ['laurenton', 23], ['campanon', 25]] }, bg: 'palace' });
-    return;
+// ---------------- Gimnasios ----------------
+// Orden recomendado = orden de la tabla. Los niveles suben con la distancia a Huesca.
+const GYMS = {
+  huesca: { town: 'Huesca', leader: 'Rey Ramiro II', type: 'Roca', flag: 'badge', badge: 'MEDALLA CAMPANA', pal: GYM_PAL, bg: 'palace',
+    team: [['mallorroc', 10], ['danzante', 11], ['campanon', 13]], again: [['mallorroc', 30], ['danzante', 30], ['laurenton', 31], ['campanon', 33]],
+    intro: ['En la sala de la Campana te espera un hombre con corona y hábito de monje...', 'RAMIRO II: Soy Ramiro II, el Rey Monje. Cuentan que con una "campana" di una lección a los nobles rebeldes.', 'RAMIRO II: ¡Veamos si tú suenas igual de fuerte! ¡Que repique la campana!'],
+    win: '¡Increíble! El sonido de tu victoria se oirá en todo Aragón.', tip: 'Pasa por el Ayuntamiento, te tienen preparada una recompensa. La siguiente Líder está en Barbastro.' },
+  barbastro: { town: 'Barbastro', leader: 'Líder Vero', type: 'Planta', flag: 'badgeBarbastro', badge: 'MEDALLA SOMONTANO', pal: ['#6a2a4a', '#e8d8c0', '#4a2a3a'], bg: 'grass',
+    team: [['albahaquin', 14], ['somontin', 15], ['somontazo', 17]], again: [['albahaquin', 32], ['somontin', 32], ['ranisuela', 32], ['somontazo', 34]],
+    intro: ['Huele a madera de roble y a uva madura...', 'VERO: ¡Bienvenido al Somontano! Soy Vero, Líder del Gimnasio de Barbastro.', 'VERO: Mis Oscamon de tipo Planta crecen entre las viñas. ¡A ver qué cosecha traes!'],
+    win: '¡Qué buena cosecha la tuya!', tip: 'Baja por el Cinca hasta Monzón: allí te espera el Templario.' },
+  monzon: { town: 'Monzón', leader: 'Templario Berenguer', type: 'Fuego', flag: 'badgeMonzon', badge: 'MEDALLA TEMPLARIA', pal: ['#f4f4f4', '#f4f4f4', '#c01818'], bg: 'palace',
+    team: [['fogaril', 17], ['antorchon', 18], ['laurenton', 20]], again: [['fogaril', 34], ['antorchon', 35], ['laurenton', 36]],
+    intro: ['Las antorchas iluminan los muros del castillo templario...', 'BERENGUER: En este castillo se crió el rey Jaime I. Yo guardo su fuego.', 'BERENGUER: ¡Que arda la batalla!'],
+    win: 'Tu llama brilla más que la mía.', tip: 'Ahora sube al Pirineo: en Jaca, Nieves te espera sobre el hielo.' },
+  jaca: { town: 'Jaca', leader: 'Líder Nieves', type: 'Hielo', flag: 'badgeJaca', badge: 'MEDALLA OROEL', pal: ['#eef6ff', '#3a7ad0', '#2a3a6a'], bg: 'snow',
+    team: [['nevero', 19], ['arminin', 20], ['aneton', 22]], again: [['nevero', 36], ['arminin', 36], ['mallorroc', 36], ['aneton', 38]],
+    intro: ['Hace un frío que pela y el suelo resbala...', 'NIEVES: ¡Bienvenido a la pista! Soy Nieves, Líder del Gimnasio de Jaca.', 'NIEVES: Mis Oscamon entrenan en Candanchú y Astún. ¿Aguantarás el frío?'],
+    win: '¡Me has derretido!', tip: 'En Sabiñánigo, a orillas del Gállego, está el Gimnasio de tipo Agua.' },
+  sabinanigo: { town: 'Sabiñánigo', leader: 'Líder Iris', type: 'Agua', flag: 'badgeSabi', badge: 'MEDALLA GÁLLEGO', pal: ['#2a6ab0', '#40c0e0', '#2a3a6a'], bg: 'water',
+    team: [['ranisuela', 22], ['truchon', 23], ['isuelon', 25]], again: [['ranisuela', 38], ['truchon', 39], ['isuelon', 40]],
+    intro: ['Se oye el agua del río Gállego corriendo junto al gimnasio...', 'IRIS: ¡Hola! Soy Iris, piragüista y Líder de Sabiñánigo.', 'IRIS: ¡Mis Oscamon bajan los rápidos del Gállego como nadie!'],
+    win: '¡Me has volcado la piragua!', tip: 'Cruza el puerto de Cotefablo y baja hasta Aínsa, en el Sobrarbe.' },
+  ainsa: { town: 'Aínsa', leader: 'Líder Guillem', type: 'Normal', flag: 'badgeAinsa', badge: 'MEDALLA PEÑA MONTAÑESA', pal: ['#a02a2a', '#d8c070', '#3a2a1a'], bg: 'palace',
+    team: [['trenzon', 25], ['danzante', 26], ['marmotin', 26], ['sarrion', 28]], again: [['trenzon', 40], ['danzante', 40], ['marmotin', 41], ['sarrion', 42]],
+    intro: ['Desde el castillo se ve la Peña Montañesa recortada en el cielo...', 'GUILLEM: Soy Guillem, señor del castillo de Aínsa y Líder del Gimnasio.', 'GUILLEM: ¡Que suenen los tambores de La Morisma!'],
+    win: '¡Has tomado el castillo!', tip: 'Ve hacia el este, a Benasque. Allí el viento del Aneto sopla fuerte.' },
+  benasque: { town: 'Benasque', leader: 'Líder Pirene', type: 'Aire', flag: 'badgeBenasque', badge: 'MEDALLA ANETO', pal: ['#e0e8f0', '#5a8ad0', '#2a3a5a'], bg: 'snow',
+    team: [['cierzin', 28], ['quebranto', 29], ['buitron', 31]], again: [['cierzin', 42], ['quebranto', 43], ['buitron', 45]],
+    intro: ['El viento silba entre las vigas de madera...', 'PIRENE: Soy Pirene, guía de alta montaña. He subido al Aneto cien veces.', 'PIRENE: ¡Mis Oscamon vuelan más alto que las cumbres!'],
+    win: 'Tienes los pies en la tierra... ¡y la cabeza en las cumbres!', tip: 'El último Gimnasio está en Torla, a las puertas de Ordesa. Necesitarás las otras siete medallas.' },
+  ordesa: { town: 'Torla-Ordesa', leader: 'Guardiana Lucía', type: 'Mixto', flag: 'badgeOrdesa', badge: 'MEDALLA MONTE PERDIDO', pal: ['#2a5a2a', '#e0d8b0', '#3a3a2a'], bg: 'rock', need: 7,
+    team: [['buitron', 32], ['antorchon', 33], ['aneton', 33], ['isuelon', 34], ['somontazo', 35]], again: [['buitron', 45], ['antorchon', 46], ['aneton', 46], ['isuelon', 47], ['somontazo', 48]],
+    intro: ['Por la ventana se ve el valle de Ordesa y, al fondo, Monte Perdido...', 'LUCÍA: Soy Lucía, guardiana del Parque Nacional y última Líder del Alto Aragón.', 'LUCÍA: Has recorrido toda la provincia. ¡Demuéstrame lo que has aprendido!'],
+    win: 'Eres el mejor entrenador que ha pisado Ordesa.', tip: '¡Eres CAMPEÓN DEL ALTO ARAGÓN! Aún quedan legendarios por encontrar: Bayardo y el Bucardo.' },
+};
+
+async function gymScript(id) {
+  const g = GYMS[id], name = g.leader.split(' ').slice(1).join(' ').toUpperCase() || g.leader.toUpperCase();
+  if (!G.party.length) return say(`${name}: Vuelve cuando tengas un Oscamon.`);
+  const again = !!G.flags[g.flag];
+  if (!again && g.need && badgeCount() < g.need) {
+    await say(`${name}: Solo acepto retos de quien tiene ${g.need} medallas. Tú tienes ${badgeCount()}.`);
+    return say(`${name}: Recorre el Alto Aragón y vuelve cuando las tengas.`);
   }
-  await say('Entras en el Palacio de los Reyes de Aragón. En la sala de la Campana te espera un hombre con corona y hábito de monje...');
-  await say('RAMIRO II: Soy Ramiro II, el Rey Monje. Cuentan que con una "campana" di una lección a los nobles rebeldes.');
-  await say('RAMIRO II: ¡Veamos si tú suenas igual de fuerte! ¡Que repique la campana!');
-  const r = await battle({ trainer: { name: 'Rey Ramiro II', pal: GYM_PAL, money: 300, lose: '¡Increíble! El sonido de tu victoria se oirá en todo Aragón.', team: [['mallorroc', 10], ['danzante', 11], ['campanon', 13]] }, bg: 'palace' });
-  if (r !== 'win') return;
-  G.flags.badge = true; G.badges = 1;
-  await say('RAMIRO II: Te has ganado esto. ¡La MEDALLA CAMPANA!');
+  if (again) {
+    await say(`${name}: ¡Hola de nuevo! Llevas la ${g.badge} con orgullo.`);
+    say('¿Quieres una revancha? Esta vez no me contendré.', { wait: false });
+    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
+  } else for (const line of g.intro) await say(line);
+  const r = await battle({ trainer: { name: g.leader, pal: g.pal, money: (again ? g.again : g.team).slice(-1)[0][1] * 25, lose: g.win, team: again ? g.again : g.team }, bg: g.bg });
+  if (r !== 'win' || again) return;
+  G.flags[g.flag] = true; G.badges = badgeCount();
+  await say(`${name}: Te la has ganado. ¡La ${g.badge}!`);
   Sound.catch();
-  await say('¡Has conseguido la MEDALLA CAMPANA!');
-  await say('¡Ahora eres CAMPEÓN DE HUESCA! Todo el Alto Aragón conoce tu nombre.');
-  await say('RAMIRO II: Pasa por el Ayuntamiento, te tienen preparada una recompensa. Y dicen que en el Salto de Roldán aguarda un Oscamon legendario...');
+  await say(`¡Has conseguido la ${g.badge}! Ya tienes ${badgeCount()} de ${Object.keys(GYMS).length} medallas.`);
+  await say(`${name}: ${g.tip}`);
   saveGame(true);
+}
+
+async function showBadges() {
+  hideDialog();
+  const ids = Object.keys(GYMS);
+  for (;;) {
+    const i = await choose(ids.map(id => {
+      const g = GYMS[id], got = !!G.flags[g.flag];
+      return { label: got ? g.badge.replace('MEDALLA ', '') : '???', sub: `${g.town} · ${g.type}`, color: got ? TYPE_COLORS[g.type] || '#8a7a5a' : '#9a9aa8' };
+    }), { title: `MEDALLAS · ${badgeCount()} de ${ids.length}` });
+    if (i < 0) return;
+    const g = GYMS[ids[i]];
+    await say(G.flags[g.flag] ? `${g.badge}: la ganaste a ${g.leader} en ${g.town}.` : `Gimnasio de ${g.town}: ${g.leader}, tipo ${g.type}.`);
+  }
 }
 
 // ---------------- Menú principal ----------------
@@ -565,10 +566,11 @@ async function showSummary(m) {
 async function mainMenu() {
   for (;;) {
     hideDialog();
-    const i = await choose(['MAPA', 'OSCAMON', 'MOCHILA', 'OSCADEX', 'GUARDAR', `SONIDO: ${Sound.muted ? 'NO' : 'SÍ'}`, 'SALIR'],
+    const i = await choose(['MAPA', 'OSCAMON', 'MOCHILA', 'OSCADEX', 'MEDALLAS', 'GUARDAR', `SONIDO: ${Sound.muted ? 'NO' : 'SÍ'}`, 'SALIR'],
       { title: `${G.money} € · Medallas: ${badgeCount()}` });
-    if (i < 0 || i === 6) return;
+    if (i < 0 || i === 7) return;
     if (i === 0) { await showMap(); continue; }
+    if (i === 4) { await showBadges(); continue; }
     if (i === 1) {
       if (!G.party.length) { await say('Aún no tienes ningún Oscamon.'); continue; }
       for (;;) {
@@ -614,9 +616,9 @@ async function mainMenu() {
         if (!G.seen[sp]) { await say('Aún no has visto a este Oscamon.'); continue; }
         await say(`${SPECIES[sp].name} (tipo ${SPECIES[sp].types.join('/')}).\n${SPECIES[sp].desc}`);
       }
-    } else if (i === 4) {
-      await say(saveGame() ? '¡Partida guardada!' : 'No se ha podido guardar la partida en este navegador.');
     } else if (i === 5) {
+      await say(saveGame() ? '¡Partida guardada!' : 'No se ha podido guardar la partida en este navegador.');
+    } else if (i === 6) {
       Sound.muted = !Sound.muted;
     }
   }
@@ -811,6 +813,8 @@ async function titleFlow() {
   else {
     G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0 }, saved.bag);
     if (saved.map !== 'world') { G.pos = migratePos(saved.map, saved.pos || START); G.lastCenter = null; }
+    else if (saved.worldVer !== WORLD_VER) { G.pos = migrateWorldPos(saved.pos || WORLD_START); G.lastCenter = null; }
+    G.worldVer = WORLD_VER;
   }
   setMap('world');
   placePlayer(G.pos);
