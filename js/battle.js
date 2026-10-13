@@ -377,6 +377,7 @@ async function endBattle(result) {
   B = null;
   if (result === 'lose') {
     healParty();
+    setMap('world');
     placePlayer(G.lastCenter || HOME_CENTER);
   }
   await tween(350, k => (fade = 1 - k));

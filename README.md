@@ -38,6 +38,10 @@ Es un único mapa de toda la **provincia de Huesca** (200 × 170 casillas), con 
 - **Los Monegros**: la estepa y Sariñena.
 - **Ríos**: Aragón, Aragón Subordán, Gállego, Ara, Cinca, Ésera, Isuela y Vero.
 
+Cada pueblo tiene plaza, iglesia, Centro Oscamon, tienda, varias casas y un **edificio propio** (el Palacio de Ayerbe, el Museo del Traje Ansotano, la Basílica de Graus, el Museo del Vino de Barbastro...). Las casas cambian según la comarca: pizarra y chimeneas troncocónicas en el Pirineo, teja en la Hoya y el Somontano, y adobe en Monegros.
+
+**Se puede entrar en todos los edificios con puerta.** Dentro hay muebles con los que puedes interactuar y alguien que te atiende: la enfermera en los Centros, la dependienta en las tiendas, el jefe de estación, el párroco, los guías de castillos y museos, los vecinos en sus casas y los Líderes en los Gimnasios, donde un aprendiz te reta antes. Para salir, pisa el felpudo verde.
+
 Con la Medalla Campana puedes coger el **tren Huesca-Canfranc**, con paradas en Huesca, Ayerbe, Sabiñánigo, Jaca y Canfranc. Andando también se llega a todas partes.
 
 ## Cómo entrenar a tus Oscamon
@@ -96,6 +100,7 @@ js/map.js       ciudad de Huesca, edificios, carteles y NPC (se incrusta en el m
 js/jaca.js      ciudad de Jaca (se incrusta en el mapa grande)
 js/world.js     mapa de la provincia: relieve, ríos, carreteras, pueblos y regiones
 js/gfx.js       pixel art procedural (casillas, edificios, personajes, criaturas)
+js/interiors.js interiores de los edificios: habitaciones, muebles y quién atiende
 js/ui.js        entrada, sonido sintetizado, diálogos y menús
 js/battle.js    sistema de combate por turnos
 js/main.js      mundo, historia, menús y guardado

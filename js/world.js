@@ -23,24 +23,24 @@ const blockRect = b => ({ x: b.ox, y: b.oy, w: b.src.w, h: b.src.h });
 // ---------------- Geografía ----------------
 // Ríos: [nombre, ancho, puntos]
 const RIVERS = [
-  ['Río Aragón', 3, [[60, 0], [60, 16], [52, 24], [40, 30], [33, 33]]],
+  ['Río Aragón', 3, [[60, 0], [60, 26], [52, 28], [40, 30], [33, 33]]],
   ['Río Aragón', 3, [[32, 61], [26, 63], [14, 59], [0, 57]]],
-  ['Río Aragón Subordán', 2, [[12, 0], [12, 30], [26, 48], [26, 62]]],
-  ['Río Gállego', 3, [[78, 0], [78, 14], [86, 26], [86, 62], [64, 70], [34, 72], [30, 78], [30, 100], [34, 169]]],
-  ['Río Ara', 2, [[116, 20], [110, 30], [110, 44], [120, 60], [134, 64]]],
+  ['Río Aragón Subordán', 2, [[12, 0], [12, 30], [26, 38], [26, 62]]],
+  ['Río Gállego', 3, [[83, 0], [83, 14], [89, 26], [89, 62], [64, 70], [34, 72], [31, 78], [28, 90], [26, 100], [30, 130], [34, 169]]],
+  ['Río Ara', 2, [[116, 20], [112, 30], [112, 44], [120, 60], [134, 64]]],
   ['Río Cinca', 3, [[156, 0], [156, 30], [146, 50], [136, 62], [138, 78], [134, 84], [136, 96], [138, 104], [138, 120], [142, 169]]],
   ['Río Ésera', 2, [[180, 0], [182, 30], [176, 52], [164, 70], [156, 90], [150, 96], [142, 98]]],
   ['Río Isuela', 2, [[80, 66], [81, 81]]],
   ['Río Isuela', 2, [[81, 131], [84, 169]]],
-  ['Río Vero', 2, [[104, 88], [104, 114], [118, 126], [120, 136], [138, 140]]],
+  ['Río Vero', 2, [[104, 88], [104, 114], [112, 130], [116, 140], [138, 142]]],
 ];
 // Embalses: [nombre, cx, cy, rx, ry]
 const LAKES = [
   ['Embalse de La Peña', 46, 69, 6, 3],
-  ['Embalse de Búbal', 85, 30, 3, 4],
+  ['Embalse de Búbal', 86, 21, 3, 3],
   ['Embalse de Mediano', 134, 85, 7, 5],
   ['Embalse de El Grado', 137, 99, 6, 4],
-  ['Ibón de Ip', 54, 6, 3, 2],
+  ['Ibón de Ip', 36, 8, 3, 2],
 ];
 // Sierras: [x0,y0,x1,y1, ancho, fuerza]
 const RIDGES = [
@@ -52,97 +52,114 @@ const RIDGES = [
   [158, 74, 168, 70, 3, 0.45],    // Turbón
 ];
 
-// Pueblos (plantilla de 15×11 centrada en cx,cy)
+// Pueblos (plantilla de 19×12 centrada en cx,cy)
+const TOWN_W = 19, TOWN_H = 12;
+const STYLE_COLORS = {
+  pirineo:   { walls: ['#cfc6b4', '#bdb3a0', '#d8d0c0', '#c4baa6'], roofs: ['#4a5060', '#5a6070', '#3e4452'] },
+  hoya:      { walls: ['#f0e0c0', '#ece4d4', '#f4e8d0', '#e8d8b8'], roofs: ['#b8503a', '#a8583a', '#c06040'] },
+  somontano: { walls: ['#f6eedc', '#efe2c8', '#faf4e6', '#ece0c4'], roofs: ['#b04a32', '#9a4a32', '#c45a3a'] },
+  monegros:  { walls: ['#dcc49a', '#d4b88a', '#e0cca4', '#d0b080'], roofs: ['#a86a40', '#9a5a38', '#b07448'] },
+};
+const GENERIC_HOUSE = [
+  '¡Buenas! ¿Quieres un trozo de longaniza? Está recién hecha.',
+  'Mi abuelo dice que antes se iba andando a todas partes. ¡Y con cierzo!',
+  'Estoy preparando un ternasco al horno para la cena.',
+  '¿Has visto los Oscamon que salen en la hierba alta? ¡Mi hijo quiere capturar uno!',
+  'En la tele dan el tiempo: mañana, cierzo y cielo despejado.',
+  'Aquí tienes tu casa. Bueno, no del todo... ¡pero ponte cómodo!',
+  'Colecciono fotos antiguas del pueblo. ¡Mira cuánto ha cambiado!',
+  'Mi perro se llama Moncayo, como la montaña.',
+];
 const TOWNS = [
-  { id: 'ayerbe', name: 'Ayerbe', cx: 40, cy: 98, station: true,
+  { id: 'ayerbe', style: 'hoya', special: { kind: 'hall', name: 'Palacio de los Marqueses de Ayerbe', text: ['Un palacio renacentista del siglo XV que preside la plaza.', 'Aquí se recuerda que Santiago Ramón y Cajal pasó parte de su infancia en Ayerbe.'] }, name: 'Ayerbe', cx: 38, cy: 99, station: true,
     sign: 'AYERBE\nPueblo de la Hoya con dos palacios y una torre del reloj.',
     houses: ['Una vecina prepara longaniza de Graus. ¡Qué bien huele!', 'Aquí nació Santiago Ramón y Cajal... bueno, ¡vivió aquí de niño!'] },
-  { id: 'riglos', name: 'Riglos', cx: 20, cy: 80, center: false,
+  { id: 'riglos', style: 'hoya', special: { kind: 'house', name: 'Refugio de Riglos', heal: true, text: ['El refugio de escaladores de Riglos te ofrece algo caliente y un rato de descanso.'] }, name: 'Riglos', cx: 18, cy: 79, center: false,
     sign: 'RIGLOS\nAl pie de los Mallos. Paraíso de escaladores y buitres leonados.',
     houses: ['Un escalador se venda los dedos: "Hoy subo el Pisón".', 'Desde la ventana se ven los buitres planeando sobre los Mallos.'] },
-  { id: 'hecho', name: 'Hecho', cx: 22, cy: 22,
+  { id: 'hecho', style: 'pirineo', special: { kind: 'hall', name: 'Museo Etnológico', text: ['Aperos de labranza, trajes chesos y fotos antiguas del Valle de Hecho.'] }, name: 'Hecho', cx: 23, cy: 22,
     sign: 'HECHO\nValle de casas de piedra y chimeneas troncocónicas. Aquí se habla cheso.',
     houses: ['"¡Bienplegau!", te saluda una señora en cheso.', 'Hay una exposición de arte en plena montaña: el Museo de Escultura al Aire Libre.'] },
-  { id: 'anso', name: 'Ansó', cx: 8, cy: 44, shop: false,
+  { id: 'anso', style: 'pirineo', special: { kind: 'hall', name: 'Museo del Traje Ansotano', text: ['Trajes de fiesta ansotanos, bordados a mano durante meses.'] }, name: 'Ansó', cx: 11, cy: 44, shop: false,
     sign: 'ANSÓ\nUno de los pueblos más bonitos de España. Famoso por su traje tradicional.',
     houses: ['Una abuela borda el traje ansotano para la fiesta del valle.', 'Un pastor te habla de la Mesa de los Tres Reyes, la cumbre más alta del valle.'] },
-  { id: 'canfranc', name: 'Canfranc', cx: 50, cy: 13, shop: true,
+  { id: 'canfranc', style: 'pirineo', special: { kind: 'castle', name: 'Torre de Fusileros', text: ['Una torre defensiva del siglo XIX que vigilaba el camino de Somport.'] }, name: 'Canfranc', cx: 49, cy: 11, shop: true,
     sign: 'CANFRANC\nA un paso de Francia por el túnel de Somport.',
     houses: ['"La estación tiene más de 200 metros de largo y una ventana por cada día del año", te cuentan.', 'Una montañera prepara la mochila para subir al Ibón de Ip.'] },
-  { id: 'sabinanigo', name: 'Sabiñánigo', cx: 73, cy: 52, station: true,
+  { id: 'sabinanigo', style: 'pirineo', special: { kind: 'hall', name: 'Museo de Artes del Serrablo', text: ['Herramientas, trajes y costumbres de la comarca del Serrablo.', 'Cerca están las iglesias del Serrablo, de hace más de mil años.'] }, name: 'Sabiñánigo', cx: 76, cy: 53, station: true,
     sign: 'SABIÑÁNIGO\nPuerta del Valle de Tena. Aquí está el Museo de Dibujo Julio Gavín.',
     houses: ['Un señor te enseña su colección de tebeos del Museo de Dibujo.', '"Por aquí pasa el río Gállego camino de Zaragoza", te explican.'] },
-  { id: 'biescas', name: 'Biescas', cx: 74, cy: 34,
+  { id: 'biescas', style: 'pirineo', special: { kind: 'church', name: 'Ermita de Santa Elena', text: ['Una ermita junto a un dolmen y una fortaleza, vigilando la entrada del Valle de Tena.'] }, name: 'Biescas', cx: 77, cy: 33,
     sign: 'BIESCAS\nEn la entrada del Valle de Tena, junto al río Gállego.',
     houses: ['Un niño juega con un sarrio de peluche.', '"Sube a Panticosa a darte un baño en el balneario", te recomiendan.'] },
-  { id: 'sallent', name: 'Sallent de Gállego', cx: 68, cy: 10, shop: true,
+  { id: 'sallent', style: 'pirineo', special: { kind: 'hall', name: 'Oficina de Pistas de Formigal', text: ['Formigal es una de las estaciones de esquí más grandes de España.'] }, name: 'Sallent de Gállego', cx: 71, cy: 9, shop: true,
     sign: 'SALLENT DE GÁLLEGO\nJunto a las pistas de esquí de Formigal y la Peña Foratata.',
     houses: ['Una esquiadora encera sus esquís para Formigal.', 'El festival Pirineos Sur llena de música el embalse de Lanuza cada verano.'] },
-  { id: 'panticosa', name: 'Panticosa', cx: 94, cy: 17, church: 'hall', churchName: 'Balneario',
+  { id: 'panticosa', style: 'pirineo', special: { kind: 'casino', name: 'Casino del Balneario', text: ['Un antiguo casino de principios del siglo XX, junto al lago del balneario.'] }, name: 'Panticosa', cx: 97, cy: 16, church: 'hall', churchName: 'Balneario',
     sign: 'PANTICOSA\nSu balneario, a 1.600 m, es famoso desde hace siglos.',
     churchText: ['Las aguas termales del Balneario de Panticosa te dejan como nuevo.'], heal: true,
     houses: ['"Arriba están los ibones de Bachimaña", te dice un guarda.', 'Un montañero sueña con subir al Garmo Negro.'] },
-  { id: 'torla', name: 'Torla-Ordesa', cx: 100, cy: 37,
+  { id: 'torla', style: 'pirineo', special: { kind: 'hall', name: 'Centro de Visitantes de Ordesa', text: ['Mapas del Parque Nacional y fotos antiguas del bucardo.'] }, name: 'Torla-Ordesa', cx: 100, cy: 37,
     sign: 'TORLA-ORDESA\nPuerta del Parque Nacional de Ordesa y Monte Perdido (1918).',
     houses: ['"El Parque Nacional se creó en 1918 para proteger al bucardo", te cuentan.', 'Un guía te enseña una foto de la Cola de Caballo.'] },
-  { id: 'ainsa', name: 'Aínsa', cx: 128, cy: 70, church: 'castle', churchName: 'Castillo de Aínsa',
+  { id: 'ainsa', style: 'pirineo', special: { kind: 'church', name: 'Iglesia de Santa María', text: ['Iglesia románica del siglo XII, junto a la Plaza Mayor porticada.'] }, name: 'Aínsa', cx: 125, cy: 72, church: 'castle', churchName: 'Castillo de Aínsa',
     sign: 'AÍNSA\nVilla medieval con una de las plazas mayores más bonitas de Aragón.',
     churchText: ['El castillo de Aínsa vigila la unión de los ríos Ara y Cinca.', 'Cada dos años se representa aquí La Morisma, una fiesta que recuerda una batalla legendaria.'],
     houses: ['Un artesano talla madera en un taller de la calle Mayor.', '"Desde aquí se ve la Peña Montañesa", te dicen señalando la ventana.'] },
-  { id: 'bielsa', name: 'Bielsa', cx: 144, cy: 36,
+  { id: 'bielsa', style: 'pirineo', special: { kind: 'hall', name: 'Museo de Bielsa', text: ['Máscaras de las trangas del carnaval y la historia del Valle de Pineta.'] }, name: 'Bielsa', cx: 140, cy: 36,
     sign: 'BIELSA\nCerca del Valle de Pineta y el túnel a Francia.',
     houses: ['En carnaval aparecen las "trangas" con cuernos de macho cabrío. ¡Dan miedo!', 'El Valle de Pineta termina bajo el glaciar de Monte Perdido.'] },
-  { id: 'benasque', name: 'Benasque', cx: 168, cy: 42, shop: true,
+  { id: 'benasque', style: 'pirineo', special: { kind: 'hall', name: 'Palacio de los Condes de Ribagorza', text: ['Un palacio renacentista en el centro de Benasque.'] }, name: 'Benasque', cx: 166, cy: 40, shop: true,
     sign: 'BENASQUE\nCapital de la montaña: a sus pies, el Aneto (3.404 m).',
     houses: ['"El Aneto es el pico más alto de los Pirineos", presume un guía.', 'Aquí se habla patués, el aragonés de Benasque.'] },
-  { id: 'graus', name: 'Graus', cx: 152, cy: 104,
+  { id: 'graus', style: 'somontano', special: { kind: 'church', name: 'Basílica de la Virgen de la Peña', text: ['Una basílica renacentista construida sobre la roca, mirando al pueblo.'] }, name: 'Graus', cx: 152, cy: 104,
     sign: 'GRAUS\nCapital de la Ribagorza. ¡Famosa por su longaniza!',
     houses: ['Una carnicera te ofrece longaniza de Graus. ¡Qué pinta!', 'La basílica de la Virgen de la Peña mira al pueblo desde la roca.'] },
-  { id: 'alquezar', name: 'Alquézar', cx: 114, cy: 104, church: 'castle', churchName: 'Colegiata de Alquézar',
+  { id: 'alquezar', style: 'somontano', special: { kind: 'hall', name: 'Centro del Río Vero', text: ['Información sobre el cañón del Vero y sus pinturas rupestres.'] }, name: 'Alquézar', cx: 115, cy: 104, church: 'castle', churchName: 'Colegiata de Alquézar',
     sign: 'ALQUÉZAR\nPueblo medieval colgado sobre el cañón del río Vero, en la Sierra de Guara.',
     churchText: ['La colegiata de Alquézar se levanta sobre un antiguo castillo musulmán.', 'Desde lo alto ves las pasarelas del río Vero.'],
     houses: ['Un barranquista se seca después de bajar el cañón del Vero.', 'En las cuevas del Vero hay pinturas rupestres de hace miles de años.'] },
-  { id: 'barbastro', name: 'Barbastro', cx: 128, cy: 128, station: false,
+  { id: 'barbastro', style: 'somontano', special: { kind: 'hall', name: 'Museo del Vino', text: ['La Denominación de Origen Somontano reúne más de 30 bodegas.'] }, name: 'Barbastro', cx: 128, cy: 128, station: false,
     sign: 'BARBASTRO\nCapital del Somontano: vino, catedral renacentista y el río Vero.',
     churchText: ['La catedral de Barbastro tiene un retablo mayor de alabastro, empezado por Damián Forment.'],
     houses: ['Un enólogo te habla de las variedades del Somontano.', '"El Gimnasio está en la bodega, al este de la ciudad", te indican.'] },
-  { id: 'monzon', name: 'Monzón', cx: 126, cy: 150,
+  { id: 'monzon', style: 'somontano', special: { kind: 'hall', name: 'Ayuntamiento de Monzón', text: ['Monzón acogió varias veces las Cortes de la Corona de Aragón.'] }, name: 'Monzón', cx: 127, cy: 153,
     sign: 'MONZÓN\nA orillas del Cinca, bajo su castillo templario.',
     houses: ['"En el castillo se crió el rey Jaime I el Conquistador", te cuentan.', 'Cada septiembre se celebra la Feria del Libro Aragonés.'] },
-  { id: 'sarinena', name: 'Sariñena', cx: 95, cy: 158, shop: false,
+  { id: 'sarinena', style: 'monegros', special: { kind: 'hall', name: 'Centro de la Laguna', text: ['La laguna de Sariñena es la mayor de Los Monegros y un refugio para las aves.'] }, name: 'Sariñena', cx: 95, cy: 158, shop: false,
     sign: 'SARIÑENA\nEn el corazón de Los Monegros, junto a su laguna.',
     houses: ['"La laguna de Sariñena está llena de aves en invierno", te dice un ornitólogo.', 'El cierzo sopla tan fuerte que se lleva los sombreros.'] },
 ];
 
 // Carreteras (camino de tierra de 2 casillas). Los extremos sobre un bloque deben ser casillas transitables.
 const ROADS = [
-  [HB(11, 30), [44, 104], [40, 98]],                                     // Huesca → Ayerbe
-  [[40, 98], [38, 92], [38, 86]],                                        // Ayerbe → Loarre
-  [[40, 98], [31, 90], [20, 80]],                                        // Ayerbe → Riglos
-  [[20, 80], [20, 66]],                                                  // Riglos → Mallos
-  [[20, 75], [21, 62]],                                                  // Riglos → San Juan de la Peña
+  [HB(11, 30), [44, 104], [38, 99]],                                     // Huesca → Ayerbe
+  [[38, 99], [38, 92], [38, 86]],                                        // Ayerbe → Loarre
+  [[38, 99], [30, 90], [18, 79]],                                        // Ayerbe → Riglos
+  [[19, 73], [19, 66]],                                                  // Riglos → Mallos
+  [[15, 73], [21, 62]],                                                  // Riglos → San Juan de la Peña
   [[21, 62], [30, 63], [45, 61]],                                        // San Juan de la Peña → Jaca (sur)
-  [HB(58, 3), [92, 66], [80, 58], [73, 52]],                             // Huesca → Monrepós → Sabiñánigo
-  [[73, 52], JB(38, 14)],                                                // Sabiñánigo → Jaca (este)
+  [HB(58, 3), [92, 66], [80, 58], [76, 53]],                             // Huesca → Monrepós → Sabiñánigo
+  [[76, 53], JB(38, 14)],                                                // Sabiñánigo → Jaca (este)
   [JB(20, 3), [48, 26], [50, 24]],                                       // Jaca → Canfranc
-  [JB(0, 18), [24, 36], [22, 22]],                                       // Jaca → Hecho
-  [[22, 22], [14, 32], [8, 44]],                                         // Hecho → Ansó
-  [[73, 52], [74, 34]],                                                  // Sabiñánigo → Biescas
-  [[74, 34], [70, 20], [68, 10]],                                        // Biescas → Sallent
-  [[74, 34], [84, 26], [94, 17]],                                        // Biescas → Panticosa
-  [[74, 34], [100, 37]],                                                 // Biescas → Torla (Cotefablo)
+  [JB(0, 18), [24, 36], [23, 22]],                                       // Jaca → Hecho
+  [[23, 22], [16, 32], [11, 44]],                                         // Hecho → Ansó
+  [[76, 53], [77, 33]],                                                  // Sabiñánigo → Biescas
+  [[77, 33], [72, 20], [71, 9]],                                        // Biescas → Sallent
+  [[77, 33], [86, 24], [97, 16]],                                        // Biescas → Panticosa
+  [[77, 33], [100, 37]],                                                 // Biescas → Torla (Cotefablo)
   [[100, 37], [108, 28], [116, 24]],                                     // Torla → Ordesa
-  [[100, 37], [102, 52], [116, 66], [128, 70]],                          // Torla → Aínsa
-  [[128, 70], [134, 52], [144, 36]],                                     // Aínsa → Bielsa
-  [[128, 70], [124, 84], [124, 110], [128, 128]],                        // Aínsa → Barbastro
-  [[128, 128], [114, 104]],                                              // Barbastro → Alquézar
+  [[100, 37], [102, 52], [116, 66], [125, 72]],                          // Torla → Aínsa
+  [[125, 72], [134, 52], [140, 36]],                                     // Aínsa → Bielsa
+  [[125, 72], [124, 84], [124, 110], [128, 128]],                        // Aínsa → Barbastro
+  [[128, 128], [115, 104]],                                              // Barbastro → Alquézar
   [[128, 128], [110, 116], HB(62, 32)],                                  // Barbastro → Huesca (este)
-  [[128, 128], [126, 150]],                                              // Barbastro → Monzón
+  [[128, 128], [127, 153]],                                              // Barbastro → Monzón
   [[128, 128], [146, 112], [152, 104]],                                  // Barbastro → Graus
-  [[152, 104], [160, 80], [166, 60], [168, 42]],                         // Graus → Benasque
-  [[168, 42], [176, 32], [186, 24]],                                     // Benasque → Aneto
+  [[152, 104], [160, 80], [166, 60], [166, 40]],                         // Graus → Benasque
+  [[166, 40], [176, 32], [186, 24]],                                     // Benasque → Aneto
   [HB(26, 54), [70, 145], [95, 158]],                                    // Huesca → Sariñena
-  [[95, 158], [126, 150]],                                               // Sariñena → Monzón
+  [[95, 158], [127, 153]],                                               // Sariñena → Monzón
 ];
 
 // Lugares especiales fuera de los pueblos
@@ -152,7 +169,7 @@ const LANDMARKS = [
   { id: 'canfranc_est', kind: 'bigstation', x: 43, y: 20, w: 14, h: 4, door: 7, name: 'Estación Internacional de Canfranc', station: 'canfranc' },
   { id: 'mediano', kind: 'tower', x: 134, y: 84, w: 1, h: 2, door: -1, name: 'Torre de Mediano' },
   { id: 'monzon_castillo', kind: 'castle', x: 123, y: 140, w: 7, h: 5, door: 3, name: 'Castillo de Monzón' },
-  { id: 'b_gym', kind: 'bodega', x: 137, y: 124, w: 6, h: 4, door: 3, name: 'Bodega Gimnasio' },
+  { id: 'b_gym', kind: 'bodega', x: 140, y: 124, w: 6, h: 4, door: 3, name: 'Bodega Gimnasio' },
   { id: 'refugio', kind: 'house', x: 115, y: 26, w: 3, h: 3, door: 1, name: 'Refugio de Góriz', colors: ['#d8c8a8', '#5a6a7a'] },
   { id: 'refugio_aneto', kind: 'house', x: 185, y: 20, w: 3, h: 3, door: 1, name: 'Refugio de la Renclusa', colors: ['#d8c8a8', '#5a6a7a'] },
 ];
@@ -210,20 +227,36 @@ function initWorldData() {
   W_BUILDINGS.find(b => b.id === 'estacion').station = 'huesca';
   W_BUILDINGS.find(b => b.id === 'j_estacion').station = 'jaca';
   // Pueblos
+  const water = waterMask();
+  const dry = (x, y, w, h) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (water.has(i + ',' + j)) return false; return true; };
   for (const t of TOWNS) {
-    const ox = t.cx - 7, oy = t.cy - 5, p = t.id + '_';
-    W_BUILDINGS.push({ id: p + 'iglesia', kind: t.church || 'church', x: ox + 1, y: oy + 1, w: 5, h: 4, door: 2, town: t.name,
-      name: t.churchName || 'Iglesia', text: t.churchText || [`La iglesia de ${t.name} es de piedra y tiene siglos de historia.`], heal: t.heal });
-    if (t.center !== false) W_BUILDINGS.push({ id: p + 'centro', kind: 'center', x: ox + 9, y: oy + 1, w: 5, h: 4, door: 2, town: t.name, name: 'Centro Oscamon' });
-    else W_BUILDINGS.push({ id: p + 'casa0', kind: 'house', x: ox + 10, y: oy + 2, w: 3, h: 3, door: 1, town: t.name, text: [t.houses[0]], colors: ['#e8dcc4', '#8a5a3a'] });
-    W_BUILDINGS.push({ id: p + 'casa1', kind: 'house', x: ox + 1, y: oy + 6, w: 3, h: 3, door: 1, town: t.name, text: [t.houses[0]], colors: ['#f0e0c0', '#b8503a'] });
-    if (t.shop !== false) W_BUILDINGS.push({ id: p + 'tienda', kind: 'shop', x: ox + 5, y: oy + 6, w: 4, h: 3, door: 1, town: t.name, name: 'Tienda' });
-    else W_BUILDINGS.push({ id: p + 'casa3', kind: 'house', x: ox + 6, y: oy + 6, w: 3, h: 3, door: 1, town: t.name, text: [t.houses[1]], colors: ['#e0d4bc', '#6a4a3a'] });
-    W_BUILDINGS.push({ id: p + 'casa2', kind: 'house', x: ox + 10, y: oy + 6, w: 3, h: 3, door: 1, town: t.name, text: [t.houses[1]], colors: ['#ece4d4', '#9a4a32'] });
-    if (t.station) {
-      W_BUILDINGS.push({ id: p + 'estacion', kind: 'station', x: t.cx - 3, y: oy + 11, w: 6, h: 2, door: 3, town: t.name, name: 'Estación de ' + t.name, station: t.id });
-    }
-    W_SIGNS.push({ x: ox + 7, y: oy + 2, text: t.sign });
+    const ox = t.cx - (TOWN_W >> 1), oy = t.cy - (TOWN_H >> 1), p = t.id + '_';
+    const pal = STYLE_COLORS[t.style || 'hoya'];
+    let n = 0;
+    const add = b => { if (dry(b.x, b.y, b.w, b.h)) W_BUILDINGS.push(Object.assign({ town: t.name, style: t.style }, b)); };
+    const house = (id, x, y, w, h) => {
+      const k = n++;
+      add({ id: p + id, kind: 'house', x, y, w, h, door: w >> 1, name: 'Casa', text: [(t.houses.concat(GENERIC_HOUSE))[(k * 3 + t.cx) % (t.houses.length + GENERIC_HOUSE.length)]],
+        colors: [pal.walls[k % pal.walls.length], pal.roofs[(k + t.cy) % pal.roofs.length]] });
+    };
+    // Fila de arriba: iglesia, Centro y edificio emblemático
+    add({ id: p + 'iglesia', kind: t.church || 'church', x: ox + 1, y: oy + 1, w: 5, h: 4, door: 2,
+      name: t.churchName || 'Iglesia de ' + t.name, text: t.churchText || [`La iglesia de ${t.name} es de piedra y tiene siglos de historia.`], heal: t.heal });
+    if (t.center !== false) add({ id: p + 'centro', kind: 'center', x: ox + 7, y: oy + 1, w: 5, h: 4, door: 2, name: 'Centro Oscamon' });
+    else house('casa0', ox + 8, oy + 2, 3, 3);
+    if (t.special) add(Object.assign({ id: p + 'especial', x: ox + 13, y: oy + 1, w: 5, h: 4, door: 2 }, t.special,
+      t.special.kind === 'house' ? { colors: [pal.walls[0], pal.roofs[0]] } : {}));
+    else house('casa1', ox + 14, oy + 2, 3, 3);
+    // Fila de abajo: casas y tienda
+    house('casa2', ox + 1, oy + 8, 3, 3);
+    if (t.shop !== false) add({ id: p + 'tienda', kind: 'shop', x: ox + 5, y: oy + 8, w: 4, h: 3, door: 1, name: 'Tienda' });
+    else house('casa3', ox + 5, oy + 8, 4, 3);
+    house('casa4', ox + 10, oy + 8, 3, 3);
+    house('casa5', ox + 14, oy + 8, 4, 3);
+    if (t.station) add({ id: p + 'estacion', kind: 'station', x: t.cx - 3, y: oy + TOWN_H, w: 6, h: 2, door: 3, name: 'Estación de ' + t.name, station: t.id });
+    W_SIGNS.push({ x: ox + 6, y: oy + 6, text: t.sign });
+    W_NPCS.push({ id: p + 'vecino', x: ox + 13, y: oy + 6, dir: 'down', pal: [pal.roofs[1], pal.walls[2] === '#d8d0c0' ? '#4a7a5a' : '#c05050', '#3a3a4a'],
+      text: [t.houses[1], `¡Bienvenido a ${t.name}!`] });
   }
   for (const l of LANDMARKS) W_BUILDINGS.push(Object.assign({}, l));
   for (const b of W_BUILDINGS) {
@@ -233,12 +266,12 @@ function initWorldData() {
   W_SIGNS.push(
     { x: 37, y: 87, text: 'CASTILLO DE LOARRE\nEl castillo románico mejor conservado de Europa (siglos XI-XII).' },
     { x: 24, y: 62, text: 'MONASTERIO DE SAN JUAN DE LA PEÑA\nConstruido bajo una enorme roca. Panteón de los primeros reyes de Aragón.' },
-    { x: 22, y: 76, text: 'MALLOS DE RIGLOS\nTorres de conglomerado rojo de casi 300 m.' },
+    { x: 24, y: 71, text: 'MALLOS DE RIGLOS\nTorres de conglomerado rojo de casi 300 m.' },
     { x: 49, y: 25, text: 'ESTACIÓN INTERNACIONAL DE CANFRANC (1928)\nUna joya modernista entre montañas.' },
     { x: 125, y: 81, text: 'EMBALSE DE MEDIANO\nLa torre de la iglesia del pueblo inundado aún asoma sobre el agua.' },
     { x: 114, y: 26, text: 'PARQUE NACIONAL DE ORDESA Y MONTE PERDIDO\nAl fondo, la Cola de Caballo. Monte Perdido: 3.355 m.' },
     { x: 184, y: 25, text: 'ANETO (3.404 m)\nEl pico más alto de los Pirineos. Su glaciar es muy delicado.' },
-    { x: 136, y: 128, text: 'BODEGA GIMNASIO DE BARBASTRO\nLíder: Vero, la Bodeguera. Tipo Planta.' },
+    { x: 139, y: 128, text: 'BODEGA GIMNASIO DE BARBASTRO\nLíder: Vero, la Bodeguera. Tipo Planta.' },
     { x: 92, y: 68, text: 'PUERTO DE MONREPÓS\nLa carretera de Huesca a Sabiñánigo cruza la sierra.' },
     { x: 90, y: 150, text: 'LOS MONEGROS\nEstepa de yesos y sabinas. ¡Cuidado con el cierzo!' },
   );
@@ -274,10 +307,10 @@ function initWorldData() {
     { id: 'ordesa_npc', x: 106, y: 30, dir: 'left', pal: ['#5a3a1a', '#3a7a3a', '#4a3a2a'],
       trainer: { name: 'Guarda del Parque Elena', team: [['marmotin', 23], ['sarrion', 24], ['quebranto', 25]], money: 240,
         intro: 'Protejo el Parque Nacional. ¡Demuestra que lo mereces!', lose: 'Respetas la montaña. Bien.', after: 'Dicen que el espíritu del bucardo aún vive junto a la Cola de Caballo...' } },
-    { id: 'benasque_npc', x: 172, y: 36, dir: 'down', pal: ['#8a2a2a', '#f0c030', '#3a3a3a'],
+    { id: 'benasque_npc', x: 171, y: 33, dir: 'down', pal: ['#8a2a2a', '#f0c030', '#3a3a3a'],
       trainer: { name: 'Montañero Pablo', team: [['nevero', 25], ['marmotin', 25], ['aneton', 27]], money: 260,
         intro: 'He subido al Aneto doce veces. ¡A ver cuánto aguantas tú!', lose: '¡Me has dejado sin aliento!', after: 'Arriba, en el glaciar del Aneto, viven los Anetón.' } },
-    { id: 'ainsa_npc', x: 130, y: 76, dir: 'left', pal: ['#a02a2a', '#e8e0c8', '#4a3a2a'],
+    { id: 'ainsa_npc', x: 125, y: 81, dir: 'up', pal: ['#a02a2a', '#e8e0c8', '#4a3a2a'],
       trainer: { name: 'Juglar Mateo', team: [['danzante', 20], ['truchon', 21], ['mallorroc', 21]], money: 210,
         intro: '¡Canto historias de La Morisma! Y ahora cantaré tu derrota.', lose: 'Compondré una canción sobre ti.', after: 'Desde Aínsa puedes ir a Bielsa o bajar hacia Barbastro.' } },
     { id: 'somontano_npc', x: 120, y: 118, dir: 'right', pal: ['#6a2a5a', '#e8d8c8', '#4a3a2a'],
@@ -287,6 +320,14 @@ function initWorldData() {
 }
 
 // ---------------- Construcción del mapa ----------------
+function waterMask() {
+  const set = new Set();
+  for (const [, w, pts] of RIVERS) walkPoly(pts, (x, y) => { for (let j = 0; j < w; j++) for (let i = 0; i < w; i++) set.add((x + i - (w >> 1)) + ',' + (y + j - (w >> 1))); });
+  for (const [, cx, cy, rx, ry] of LAKES) for (let y = cy - ry; y <= cy + ry; y++) for (let x = cx - rx; x <= cx + rx; x++)
+    if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1) set.add(x + ',' + y);
+  return set;
+}
+
 function hash2(x, y, s) {
   let h = (x * 374761393 + y * 668265263 + s * 982451653) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -328,7 +369,7 @@ function buildWorld() {
   const rect = (x, y, w, h, c) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) set(i, j, c); };
   const blocks = [blockRect(HUESCA_BLOCK), blockRect(JACA_BLOCK)];
   const inBlock = (x, y) => blocks.some(r => inRect(x, y, r));
-  const flats = [...TOWNS.map(t => [t.cx, t.cy, 10]), [38, 82, 7], [21, 59, 6], [50, 18, 9], [112, 26, 8], [184, 24, 6],
+  const flats = [...TOWNS.map(t => [t.cx, t.cy, 15]), [38, 82, 7], [21, 59, 6], [50, 18, 9], [112, 26, 8], [184, 24, 6],
     [73, 46, 26], [47, 47, 26], [74, 105, 32]];
 
   // 1) Relieve
@@ -409,17 +450,22 @@ function buildWorld() {
 
   // 5) Pueblos y lugares
   for (const t of TOWNS) {
-    const ox = t.cx - 7, oy = t.cy - 5;
-    rect(ox - 1, oy - 1, 17, 13, '.');
-    rect(ox, oy, 15, 11, '=');
-    rect(ox + 1, oy + 5, 13, 1, 'S');
-    if (t.station) rect(t.cx - 4, oy + 11, 8, 3, '=');
+    const ox = t.cx - (TOWN_W >> 1), oy = t.cy - (TOWN_H >> 1);
+    const pave = (x, y, c) => {
+      const cur = get(x, y);
+      if (cur === '~' || cur === 'H') set(x, y, [0, 5, 6, 7, TOWN_H - 1].includes(y - oy) || y >= oy + TOWN_H ? 'H' : '~');
+      else set(x, y, c);
+    };
+    for (let y = oy - 1; y <= oy + TOWN_H; y++) for (let x = ox - 1; x <= ox + TOWN_W; x++) { const c = get(x, y); if (c && c !== '~' && c !== 'H') set(x, y, '.'); }
+    for (let y = oy; y < oy + TOWN_H; y++) for (let x = ox; x < ox + TOWN_W; x++) pave(x, y, y === oy + 6 && x > ox && x < ox + TOWN_W - 1 ? 'S' : '=');
+    if (t.station) for (let y = oy + TOWN_H; y < oy + TOWN_H + 3; y++) for (let x = t.cx - 4; x < t.cx + 4; x++) pave(x, y, '=');
+    for (const [x, y] of [[ox - 1, oy - 1], [ox + TOWN_W, oy - 1], [ox - 1, oy + TOWN_H], [ox + TOWN_W, oy + TOWN_H]]) if (get(x, y) === '.') set(x, y, t.style === 'pirineo' ? 'A' : 'T');
   }
   rect(31, 77, 15, 11, 'M'); rect(32, 79, 13, 7, '.'); rect(36, 86, 5, 2, 'D');            // cerro de Loarre
   rect(15, 53, 13, 4, 'M'); rect(16, 57, 11, 5, '.');                                         // roca de San Juan de la Peña
   rect(41, 19, 18, 7, '=');                                                                   // explanada de Canfranc
   rect(120, 139, 13, 7, '.'); rect(121, 145, 11, 1, '=');                                    // cerro de Monzón
-  rect(134, 122, 10, 8, '=');                                                                 // bodega de Barbastro
+  rect(139, 122, 9, 8, '=');                                                                 // bodega de Barbastro
   rect(110, 20, 14, 8, '.'); rect(113, 24, 8, 4, ',');                                        // pradera de Ordesa
   rect(117, 22, 3, 2, '~');
   rect(180, 18, 12, 9, '.'); rect(182, 26, 8, 2, ',');                                        // la Renclusa
@@ -456,7 +502,7 @@ function worldZoneName(x, y) {
     return 'Huesca';
   }
   if (inRect(x, y, blockRect(JACA_BLOCK))) return jacaZoneName(x - JB(0, 0)[0], y - JB(0, 0)[1]);
-  for (const t of TOWNS) if (Math.abs(x - t.cx) <= 9 && Math.abs(y - t.cy) <= 7) return t.name;
+  for (const t of TOWNS) if (Math.abs(x - t.cx) <= (TOWN_W >> 1) + 2 && Math.abs(y - t.cy) <= (TOWN_H >> 1) + 2) return t.name;
   for (const l of LANDMARKS) if (l.name && l.kind !== 'house' && Math.abs(x - (l.x + l.w / 2)) <= l.w / 2 + 4 && Math.abs(y - (l.y + l.h / 2)) <= l.h / 2 + 4) return l.name;
   const r = REGIONS.find(r => inRect(x, y, r));
   return r ? r.name : 'Alto Aragón';

@@ -49,16 +49,19 @@ function setMap(id) {
 function healParty() { for (const m of G.party) m.hp = maxHp(m); }
 
 function saveGame(silent) {
-  G.pos = { x: player.x, y: player.y, dir: player.dir };
+  // Dentro de un edificio se guarda la posición de su puerta en el mapa grande
+  G.pos = CUR && CUR.interior ? { ...CUR.back } : { x: player.x, y: player.y, dir: player.dir };
+  const map = G.map; G.map = 'world';
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); return true; }
   catch (e) { if (!silent) console.warn(e); return false; }
+  finally { G.map = map; }
 }
 function loadGame() {
   try { const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
 }
 
 // ---------------- Mapa ----------------
-const tileAt = (x, y) => (MAP[y] && MAP[y][x]) || 'T';
+const tileAt = (x, y) => (MAP[y] && MAP[y][x]) || (CUR && CUR.interior ? 'w' : 'T');
 const signAt = (x, y) => CUR.signs.find(s => s.x === x && s.y === y);
 const npcAt = (x, y) => CUR.npcs.find(n => n.x === x && n.y === y);
 const legendAt = (x, y) => (CUR.legends || []).find(l => !G.flags[l.flag] && l.x === x && l.y === y);
@@ -143,6 +146,7 @@ function onStep() {
     }
   }
   const tl = tileAt(player.x, player.y);
+  if (tl === 'm' && CUR.interior) { runScript(exitInterior); return; }
   if ((tl === ',' && Math.random() < 0.09) || (tl === 'V' && Math.random() < 0.05)) runScript(wildEncounter);
 }
 
@@ -161,7 +165,7 @@ worldPress = btn => {
   const [dx, dy] = DIRS[player.dir], x = player.x + dx, y = player.y + dy;
   const s = signAt(x, y);
   if (s) return runScript(() => say(s.text));
-  const n = npcAt(x, y);
+  const n = npcAt(x, y) || (tileAt(x, y) === 'q' ? npcAt(x + dx, y + dy) : null);
   if (n) return runScript(() => talkTo(n));
   const L = legendAt(x, y);
   if (L) return runScript(() => legendEncounter(L));
@@ -171,6 +175,10 @@ worldPress = btn => {
   if (t === '~') return runScript(() => say('El agua baja fresquita desde las montañas del Pirineo.'));
   if (t === 'R') return runScript(() => say('Conglomerado rojo de los Mallos de Riglos. ¡Impresionante!'));
   if (t === 'r') return runScript(() => say('La vía del tren Huesca-Canfranc. ¡No se juega en las vías!'));
+  if (CUR.interior && FURNITURE_TEXT[t]) {
+    const txt = t === 'o' && CUR.building.kind !== 'bodega' ? 'Un barril viejo de madera.' : FURNITURE_TEXT[t];
+    return runScript(() => say(txt));
+  }
 };
 
 // ---------------- Encuentros ----------------
@@ -211,6 +219,7 @@ async function trainerBattle(n) {
 
 async function talkTo(n) {
   n.dir = OPP[player.dir];
+  if (n.host) return hostScript(n.b);
   if (n.trainer) {
     if (G.flags['tr_' + n.id]) return say(`${n.trainer.name.toUpperCase()}: ${n.trainer.after}`);
     if (!G.party.length) return say(`${n.trainer.name.toUpperCase()}: Vuelve cuando tengas un Oscamon y combatiremos.`);
@@ -221,13 +230,35 @@ async function talkTo(n) {
 
 // ---------------- Edificios ----------------
 async function enterBuilding(b) {
-  Sound.blip();
+  Sound.seq([[523, 0.06], [659, 0.08]], 'square', 0.04);
+  if (b.kind === 'center') G.lastCenter = { x: b.x + b.door, y: b.y + b.h, dir: 'down' };
+  const room = getInterior(b);
+  await tween(180, k => (fade = k));
+  setMap(room.id);
+  placePlayer(room.spawn);
+  banner = { text: room.name, t: 2 };
+  await tween(180, k => (fade = 1 - k));
+}
+
+async function exitInterior() {
+  const back = CUR.back;
+  Sound.seq([[659, 0.06], [523, 0.08]], 'square', 0.04);
+  await tween(180, k => (fade = k));
+  setMap('world');
+  placePlayer(back);
+  banner = { text: lastZone, t: 2 };
+  await tween(180, k => (fade = 1 - k));
+}
+
+// Lo que pasa al hablar con quien atiende el edificio
+async function hostScript(b) {
   if (b.station) return trainScript(b);
-  if (b.kind === 'center') {
-    G.lastCenter = { x: b.x + b.door, y: b.y + b.h, dir: 'down' };
-    return centerScript(b.town || (b.id === 'j_centro' ? 'Jaca' : 'Huesca'));
-  }
+  if (b.kind === 'center') return centerScript(b.town || (b.id === 'j_centro' ? 'Jaca' : 'Huesca'));
   if (b.kind === 'shop') return shopScript();
+  return buildingScript(b);
+}
+
+async function buildingScript(b) {
   switch (b.id) {
     case 'lab': return labScript();
     case 'centro': return centerScript();
@@ -318,7 +349,7 @@ async function enterBuilding(b) {
   }
   if (b.heal) { for (const line of b.text) await say(line); healParty(); Sound.heal(); await sleep(600); return say('¡Tus Oscamon se han recuperado por completo!'); }
   if (b.text) { for (const line of b.text) await say(line); return; }
-  if (b.kind === 'house') return say('La puerta está cerrada. Dentro se oye la radio.');
+  if (b.kind === 'house') return say('¡Hola! Ponte cómodo, estás en tu casa.');
 }
 
 async function trainScript(b) {
@@ -339,6 +370,7 @@ async function travel(to) {
   await sleep(900);
   hideDialog();
   await tween(500, k => (fade = k));
+  setMap('world');
   placePlayer(STATIONS[to]);
   saveGame(true);
   await sleep(500);
@@ -595,8 +627,9 @@ function camera() {
   const k = player.moving ? player.t : 0;
   const px = (player.x + (player.tx - player.x) * k) * 16, py = (player.y + (player.ty - player.y) * k) * 16;
   let cx = px + 8 - VW / 2, cy = py + 8 - VH / 2;
-  cx = Math.max(0, Math.min(CUR.w * 16 - VW, cx));
-  cy = Math.max(0, Math.min(CUR.h * 16 - VH, cy));
+  // Las habitaciones más pequeñas que la pantalla se centran
+  cx = CUR.w * 16 <= VW ? (CUR.w * 16 - VW) / 2 : Math.max(0, Math.min(CUR.w * 16 - VW, cx));
+  cy = CUR.h * 16 <= VH ? (CUR.h * 16 - VH) / 2 : Math.max(0, Math.min(CUR.h * 16 - VH, cy));
   return [Math.round(cx * SCALE) / SCALE, Math.round(cy * SCALE) / SCALE, px, py];
 }
 
@@ -611,7 +644,9 @@ function renderWorld(t) {
   const [cx, cy, ppx, ppy] = camera();
   const wf = Math.floor(t / 500) % 2;
   const x0 = Math.floor(cx / 16), y0 = Math.floor(cy / 16);
-  for (let y = y0; y <= y0 + 11; y++) for (let x = x0; x <= x0 + 15; x++) {
+  if (CUR.interior) { ctx.fillStyle = '#101018'; ctx.fillRect(0, 0, VW, VH); }
+  for (let y = y0; y <= y0 + 11; y++) for (let x = x0; x <= x0 + 16; x++) {
+    if (CUR.interior && !(MAP[y] && MAP[y][x])) continue;
     const c = tileAt(x, y), fr = (c === 'R' && tileAt(x, y - 1) !== 'R' ? TILES.Rtop : TILES[c]) || TILES['.'];
     ctx.drawImage(fr[wf % fr.length], x * 16 - cx, y * 16 - cy);
   }
@@ -699,10 +734,11 @@ let MINIMAP = null;
 const MM_COLORS = { '.': '#7ccb5c', ',': '#4f9a3a', '=': '#e8dcc0', C: '#a0a0a8', S: '#f0e8d0', D: '#c89a58', '~': '#3f88dc', H: '#a87444',
   T: '#2f7a34', A: '#1f5a34', M: '#8a8276', n: '#f4f8fc', R: '#c4643c', F: '#7ccb5c', r: '#6a5a4a', B: '#b8503a', Y: '#e2c25a', V: '#9a8a4a', d: '#dcc79a' };
 function buildMinimap() {
-  const c = document.createElement('canvas'); c.width = CUR.w; c.height = CUR.h;
-  const g = c.getContext('2d'), img = g.createImageData(CUR.w, CUR.h);
-  for (let y = 0; y < CUR.h; y++) for (let x = 0; x < CUR.w; x++) {
-    const [r, gg, b] = hexToRgb(MM_COLORS[MAP[y][x]] || '#7ccb5c'), i = (y * CUR.w + x) * 4;
+  const Wd = MAPS.world, T = Wd.tiles;
+  const c = document.createElement('canvas'); c.width = Wd.w; c.height = Wd.h;
+  const g = c.getContext('2d'), img = g.createImageData(Wd.w, Wd.h);
+  for (let y = 0; y < Wd.h; y++) for (let x = 0; x < Wd.w; x++) {
+    const [r, gg, b] = hexToRgb(MM_COLORS[T[y][x]] || '#7ccb5c'), i = (y * Wd.w + x) * 4;
     img.data[i] = r; img.data[i + 1] = gg; img.data[i + 2] = b; img.data[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
@@ -717,7 +753,7 @@ async function showMap() {
 }
 function renderMap(t) {
   ctx.fillStyle = '#18202c'; ctx.fillRect(0, 0, VW, VH);
-  const sc = Math.min((VW - 8) / CUR.w, (VH - 20) / CUR.h), w = CUR.w * sc, h = CUR.h * sc, ox = (VW - w) / 2, oy = 16;
+  const Wd = MAPS.world, sc = Math.min((VW - 8) / Wd.w, (VH - 20) / Wd.h), w = Wd.w * sc, h = Wd.h * sc, ox = (VW - w) / 2, oy = 16;
   ctx.drawImage(MINIMAP, ox, oy, w, h);
   ctx.strokeStyle = '#f0e0b0'; ctx.lineWidth = 0.6; ctx.strokeRect(ox - 0.5, oy - 0.5, w + 1, h + 1);
   text('PROVINCIA DE HUESCA', VW / 2, 5, '#f0e0b0', 6, 'center');
@@ -730,7 +766,8 @@ function renderMap(t) {
     text(name, px + (right ? 2.5 : -2.5), py - 1.6, '#ffffff', 3.4, right ? 'left' : 'right');
   }
   if (Math.floor(t / 300) % 2) {
-    const px = ox + player.x * sc, py = oy + player.y * sc;
+    const pos = CUR.interior ? CUR.back : player;
+    const px = ox + pos.x * sc, py = oy + pos.y * sc;
     ctx.fillStyle = '#e02020'; ctx.beginPath(); ctx.arc(px, py, 2.4, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.8; ctx.stroke();
   }

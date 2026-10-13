@@ -222,6 +222,29 @@ function makeTiles() {
     p.tri(5, 6, 8, 1, 11, 6, '#3a8a50');
   });
   TILES['B'] = TILES['='];
+  // ---- Interiores ----
+  const wood = p => { p.rect(0, 0, 16, 16, '#c89a62'); for (let y = 3; y < 16; y += 4) p.rect(0, y, 16, 1, '#a87a48'); for (const [x, y] of [[5, 0], [12, 4], [2, 8], [9, 12]]) p.rect(x, y, 1, 3, '#a87a48'); };
+  TILES.f = mk(wood);
+  TILES.k = mk(p => { for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) p.rect(x * 8, y * 8, 8, 8, (x + y) % 2 ? '#d4dce8' : '#eef0f6'); });
+  TILES.s = mk(p => { p.rect(0, 0, 16, 16, '#b8b0a0'); for (const y of [0, 8]) p.rect(0, y, 16, 1, '#968e7e'); p.rect(5, 0, 1, 8, '#968e7e'); p.rect(11, 8, 1, 8, '#968e7e'); p.px(2, 3, '#ccc4b4'); p.px(13, 11, '#ccc4b4'); });
+  TILES.c = mk(p => { p.rect(0, 0, 16, 16, '#b83a3a'); p.rect(1, 0, 1, 16, '#e0b040'); p.rect(14, 0, 1, 16, '#e0b040'); for (let y = 2; y < 16; y += 4) p.px(8, y, '#d86060'); });
+  TILES.i = mk(p => { p.rect(0, 0, 16, 16, '#dcf2fc'); p.line(1, 12, 9, 4, '#ffffff'); p.line(8, 15, 15, 8, '#ffffff'); p.px(4, 3, '#b8e0f4'); p.px(12, 2, '#b8e0f4'); });
+  TILES.m = mk(p => { wood(p); p.rect(1, 2, 14, 12, '#2a6a3a'); p.rect(2, 3, 12, 10, '#3a8a4a'); for (let x = 3; x < 13; x += 2) p.rect(x, 5, 1, 6, '#2a6a3a'); });
+  const wall = p => { p.rect(0, 0, 16, 16, '#eadfc8'); for (let x = 0; x < 16; x += 4) p.rect(x, 0, 1, 12, '#ddd0b4'); p.rect(0, 12, 16, 4, '#8a6a4a'); p.rect(0, 12, 16, 1, '#6a4a2a'); };
+  TILES.w = mk(wall);
+  TILES.W = mk(p => { wall(p); p.rect(3, 2, 10, 8, '#6a4a2a'); p.rect(4, 3, 8, 6, '#8cc4f0'); p.tri(4, 9, 8, 4, 12, 9, '#7a8a9a'); p.tri(7, 6, 8, 4, 9, 6, '#ffffff'); p.rect(4, 8, 8, 1, '#5aa04a'); });
+  TILES.q = mk(p => { wood(p); p.rect(0, 2, 16, 12, '#6a4028'); p.rect(0, 2, 16, 4, '#9a6a42'); p.rect(0, 5, 16, 1, '#4a2a18'); });
+  TILES.b = mk(p => { p.rect(0, 0, 16, 16, '#6a4028'); for (const y of [2, 8]) { p.rect(1, y, 14, 5, '#3a2414'); const cols = ['#c04040', '#4060c0', '#40a060', '#e0c040', '#a050a0']; for (let x = 1; x < 15; x += 2) p.rect(x, y + (x % 3 === 0 ? 1 : 0), 2, 5 - (x % 3 === 0 ? 1 : 0), cols[(x + y) % 5]); } p.rect(0, 14, 16, 2, '#4a2a18'); });
+  TILES.v = mk(p => { p.rect(0, 0, 16, 16, '#d8d8e0'); for (const y of [3, 10]) { p.rect(0, y + 4, 16, 1, '#8a8a9a'); for (let x = 1; x < 16; x += 4) { p.ell(x + 1.5, y + 2, 1.6, 1.6, x % 8 === 1 ? '#2a8a4a' : '#d04050'); p.px(x + 1, y + 1, '#ffffff'); } } });
+  TILES.t = mk(p => { wood(p); p.rect(1, 3, 14, 9, '#7a4a2a'); p.rect(1, 3, 14, 7, '#a06a3a'); p.rect(2, 12, 2, 3, '#5a3a1a'); p.rect(12, 12, 2, 3, '#5a3a1a'); });
+  TILES.p = mk(p => { wood(p); p.rect(5, 10, 6, 5, '#b0603a'); p.rect(4, 10, 8, 1, '#8a4a2a'); p.ball(8, 6, 5, 4.5, '#3a9a3a'); p.ball(5, 8, 2.5, 2, '#4aaa4a'); p.ball(11, 8, 2.5, 2, '#4aaa4a'); });
+  TILES.e = mk(p => { wood(p); p.rect(1, 1, 14, 15, '#6a4028'); p.rect(2, 2, 12, 13, '#f4f4f4'); p.rect(3, 3, 10, 3, '#ffffff'); p.rect(2, 7, 12, 8, '#c84a4a'); p.rect(2, 7, 12, 1, '#a83a3a'); });
+  TILES.x = mk(p => { p.rect(0, 0, 16, 16, '#b8b0a0'); p.rect(0, 4, 16, 3, '#5a3a22'); p.rect(0, 7, 16, 5, '#7a5030'); p.rect(1, 12, 2, 3, '#4a2a18'); p.rect(13, 12, 2, 3, '#4a2a18'); });
+  TILES.a = mk(p => { p.rect(0, 0, 16, 16, '#b8b0a0'); p.rect(0, 4, 16, 11, '#f4f0e4'); p.rect(0, 4, 16, 2, '#e0c040'); p.rect(3, 0, 2, 4, '#f4f0d0'); p.rect(11, 0, 2, 4, '#f4f0d0'); p.px(3, 0, '#f0a020'); p.px(12, 0, '#f0a020'); p.rect(7, 7, 2, 6, '#e0c040'); p.rect(5, 9, 6, 2, '#e0c040'); });
+  TILES.o = mk(p => { wood(p); p.ell(8, 9, 6.5, 6.5, '#8a5a2a'); for (const x of [4, 8, 12]) p.rect(x, 3, 1, 12, '#6a4020'); p.rect(2, 6, 13, 1, '#4a4a4a'); p.rect(2, 12, 13, 1, '#4a4a4a'); });
+  TILES.g = mk(p => { p.rect(0, 0, 16, 16, '#d4dce8'); p.rect(1, 1, 14, 14, '#9aa4b4'); p.rect(2, 2, 12, 5, '#2a3a4a'); p.rect(3, 3, 10, 3, '#40d080'); for (let x = 3; x < 14; x += 4) { p.ell(x + 1, 11, 1.6, 1.6, '#e04848'); p.px(x + 1, 12, '#ffffff'); } });
+  TILES.z = mk(p => { wood(p); p.rect(1, 2, 14, 13, '#3a3a40'); p.rect(2, 3, 12, 4, '#5a5a62'); p.rect(4, 9, 8, 5, '#202024'); p.rect(5, 11, 6, 3, '#f08030'); p.px(7, 10, '#f0d040'); });
+  TILES.l = mk(p => { p.rect(0, 0, 16, 16, '#b8b0a0'); p.rect(3, 0, 10, 16, '#d8d0c0'); p.rect(3, 0, 2, 16, '#ece4d4'); p.rect(11, 0, 2, 16, '#a8a090'); p.rect(2, 0, 12, 2, '#c8c0b0'); p.rect(2, 14, 12, 2, '#c8c0b0'); });
 }
 
 // Parte inferior de la hierba alta (se pinta encima del personaje)
@@ -586,7 +609,15 @@ function drawBuilding(ctx, b, sx, sy) {
   switch (b.kind) {
     case 'house': {
       const [wall, roof] = b.colors || ['#f0e0c0', '#c05a3a'];
-      house(wall, roof); door(); outline(); break;
+      house(wall, roof);
+      if (b.style === 'pirineo') {          // chimenea troncocónica
+        const cx = W - 11;
+        poly([[cx, 12], [cx + 7, 12], [cx + 6, 2], [cx + 1, 2]], '#c4baa6');
+        R(cx, 0, 7, 3, '#4a5060'); R(cx + 2, 3, 3, 1, '#8a8276');
+      } else if (b.style === 'monegros') {
+        R(W - 9, 2, 4, 6, shade(roof, 0.8));
+      }
+      door(); outline(); break;
     }
     case 'center': {
       house('#f8f8f8', '#e04848');
