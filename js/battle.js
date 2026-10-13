@@ -367,7 +367,7 @@ async function endBattle(result) {
   B = null;
   if (result === 'lose') {
     healParty();
-    player.x = CENTER_SPOT.x; player.y = CENTER_SPOT.y; player.dir = CENTER_SPOT.dir; player.moving = false;
+    placePlayer(CUR.center);
   }
   await tween(350, k => (fade = 1 - k));
   if (result === 'lose') {
@@ -382,6 +382,7 @@ const BG_STYLES = {
   rock:   { top: '#fbe2cc', bot: '#e0a888', plat: '#c89070', rim: '#8a5a40' },
   water:  { top: '#e0f0ff', bot: '#90c4ec', plat: '#78b0dc', rim: '#4a80b0' },
   palace: { top: '#ece4f4', bot: '#b0a4c4', plat: '#c8bca0', rim: '#8a7c60' },
+  snow:   { top: '#eef6ff', bot: '#bcd4ec', plat: '#f4f9ff', rim: '#98b0c8' },
 };
 
 function drawHud(x, y, w, mon, hpD, isPlayer) {
@@ -437,6 +438,14 @@ function renderBattle(t) {
     for (const [x, w, h] of [[10, 22, 50], [30, 18, 62], [190, 26, 46], [214, 20, 58]]) {
       ctx.beginPath(); ctx.ellipse(x + w / 2, 72, w / 2, h, 0, Math.PI, 0); ctx.fill();
     }
+  } else if (B.bg === 'snow') {
+    ctx.fillStyle = '#9aaecc';
+    ctx.beginPath(); ctx.moveTo(-10, 80);
+    [[20, 40], [50, 70], [90, 30], [130, 66], [170, 36], [210, 62], [250, 44], [250, 80]].forEach(([x, y]) => ctx.lineTo(x, y));
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    for (const [x, y] of [[20, 40], [90, 30], [170, 36]]) { ctx.beginPath(); ctx.moveTo(x - 9, y + 10); ctx.lineTo(x, y); ctx.lineTo(x + 9, y + 10); ctx.fill(); }
+    for (let i = 0; i < 24; i++) ctx.fillRect((i * 47 + t / 30) % 240, (i * 29 + t / 18) % 112, 1, 1);
   } else if (B.bg === 'palace') {
     ctx.fillStyle = '#9c90b0';
     for (let x = 6; x < 240; x += 34) ctx.fillRect(x, 0, 10, 80);

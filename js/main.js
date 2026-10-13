@@ -12,6 +12,7 @@ const PLAYER_PAL = ['#d83030', '#3060c0', '#383848'];
 const GYM_PAL = ['#f0c020', '#6a2a8a', '#3a2a5a'];
 
 let MAP = null;
+let CUR = null;      // mapa actual (MAPS.huesca / MAPS.jaca)
 let mode = 'title';
 let fade = 0, flash = 0;
 let busy = false;
@@ -33,11 +34,18 @@ function text(str, x, y, color, size = 6, align = 'left') {
 function newState() {
   return {
     party: [], box: [], bag: { ball: 0, potion: 0, super: 0 }, money: 100,
-    flags: {}, seen: {}, caught: {}, badges: 0, pos: { ...START },
+    flags: {}, seen: {}, caught: {}, badges: 0, map: 'huesca', pos: { ...START },
   };
 }
 function markSeen(sp) { G.seen[sp] = true; }
 function markCaught(sp) { G.seen[sp] = true; G.caught[sp] = true; }
+const badgeCount = () => (G.flags.badge ? 1 : 0) + (G.flags.badgeJaca ? 1 : 0);
+function setMap(id) {
+  CUR = MAPS[id] || MAPS.huesca;
+  if (!CUR.tiles) CUR.tiles = CUR.build();
+  MAP = CUR.tiles;
+  G.map = CUR.id;
+}
 function healParty() { for (const m of G.party) m.hp = maxHp(m); }
 
 function saveGame(silent) {
@@ -51,18 +59,19 @@ function loadGame() {
 
 // ---------------- Mapa ----------------
 const tileAt = (x, y) => (MAP[y] && MAP[y][x]) || 'T';
-const signAt = (x, y) => SIGNS.find(s => s.x === x && s.y === y);
-const npcAt = (x, y) => NPCS.find(n => n.x === x && n.y === y);
-const legendAt = (x, y) => !G.flags.legend && LEGEND.x === x && LEGEND.y === y;
-const itemAt = (x, y) => ITEMS_ON_MAP.find(i => i.x === x && i.y === y && !G.flags[i.id]);
-function doorAt(x, y) { return BUILDINGS.find(b => b.door >= 0 && b.x + b.door === x && b.y + b.h - 1 === y); }
+const signAt = (x, y) => CUR.signs.find(s => s.x === x && s.y === y);
+const npcAt = (x, y) => CUR.npcs.find(n => n.x === x && n.y === y);
+const legendAt = (x, y) => !!CUR.legend && !G.flags.legend && CUR.legend.x === x && CUR.legend.y === y;
+const itemAt = (x, y) => CUR.items.find(i => i.x === x && i.y === y && !G.flags[i.id]);
+function doorAt(x, y) { return CUR.buildings.find(b => b.door >= 0 && b.x + b.door === x && b.y + b.h - 1 === y); }
 function blocked(x, y) {
   return SOLID.has(tileAt(x, y)) || !!signAt(x, y) || !!npcAt(x, y) || legendAt(x, y);
 }
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const OPP = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
-function zoneName(x, y) {
+const zoneName = (x, y) => CUR.zoneName(x, y);
+function huescaZoneName(x, y) {
   if (y < 22 && x < 14) return 'Mallos de Riglos';
   if (y < 10 && x >= 18 && x <= 36) return 'Salto de Roldán';
   if (y < 22 && x < 41) return 'Ruta del Pirineo';
@@ -135,7 +144,7 @@ function onStep() {
   }
   // entrenadores que te ven
   if (G.party.length) {
-    for (const n of NPCS) {
+    for (const n of CUR.npcs) {
       if (!n.trainer || G.flags['tr_' + n.id]) continue;
       const [dx, dy] = DIRS[n.dir];
       for (let k = 1; k <= 4; k++) {
@@ -175,7 +184,7 @@ worldPress = btn => {
 };
 
 // ---------------- Encuentros ----------------
-function zoneAt(x, y) { return ZONES.find(z => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) || ZONES[1]; }
+function zoneAt(x, y) { return CUR.zones.find(z => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) || CUR.zones[CUR.defaultZone]; }
 
 async function wildEncounter() {
   const z = zoneAt(player.x, player.y);
@@ -191,7 +200,7 @@ async function legendEncounter() {
   Sound.tone(500, 0.6, 'sawtooth', 0.05, 300);
   await say('¡Un relincho resuena entre las peñas del Salto de Roldán!');
   await say('¡Es BAYARDO, el legendario caballo de Roldán!');
-  const res = await battle({ wild: makeMon(LEGEND.sp, LEGEND.lvl), bg: 'rock' });
+  const res = await battle({ wild: makeMon(CUR.legend.sp, CUR.legend.lvl), bg: 'rock' });
   if (res === 'caught') G.flags.legend = true;
   else if (res === 'win') { G.flags.legend = true; await say('Bayardo dio un salto de peña en peña y desapareció en el horizonte...'); }
 }
@@ -207,7 +216,7 @@ async function trainerSpotted(n) {
 async function trainerBattle(n) {
   const t = n.trainer;
   await say(`${t.name.toUpperCase()}: ${t.intro}`);
-  const r = await battle({ trainer: { ...t, pal: n.pal }, bg: n.id === 'montanera' ? 'rock' : 'grass' });
+  const r = await battle({ trainer: { ...t, pal: n.pal }, bg: n.id === 'montanera' ? 'rock' : CUR.id === 'jaca' ? 'snow' : 'grass' });
   if (r === 'win') G.flags['tr_' + n.id] = true;
 }
 
@@ -262,15 +271,83 @@ async function enterBuilding(b) {
     case 'casino': return say('El Círculo Oscense está de baile. Suena una jota y alguien grita "¡Viva San Lorenzo!".');
     case 'casa1': return say('Una familia está comiendo migas con uva. "¿Gustas?", te preguntan. ¡Qué amables!');
     case 'casa2': return say('Un señor mayor ve el fútbol: "¡Aúpa SD Huesca!". Mejor no molestar.');
-    case 'estacion':
-      await say('JEFE DE ESTACIÓN: Próximo tren: Canfranc, por el Pirineo. Luego, Zaragoza.');
-      return say(G.flags.badge ? 'JEFE DE ESTACIÓN: ¿Ya has visto todo el Oscadex de Huesca? ¡Aún quedan aventuras!' : 'Pero aún te queda mucho por hacer en Huesca...');
+    case 'estacion': {
+      if (!G.flags.badge) {
+        await say('JEFE DE ESTACIÓN: El tren sube por el Pirineo hasta Jaca y Canfranc.');
+        return say('JEFE DE ESTACIÓN: Pero solo viajan entrenadores con la MEDALLA CAMPANA. ¡Vence a Ramiro II en el Palacio!');
+      }
+      say('JEFE DE ESTACIÓN: ¿Quieres un billete a Jaca? ¡Allí está el Gimnasio del Pabellón de Hielo!', { wait: false });
+      if ((await choose(['Sí, a Jaca', 'No, gracias'])) === 0) return travel('jaca');
+      return;
+    }
+    case 'j_estacion': {
+      say('JEFE DE ESTACIÓN: ¿Vuelves a Huesca?', { wait: false });
+      if ((await choose(['Sí, a Huesca', 'No, me quedo'])) === 0) return travel('huesca');
+      return;
+    }
+    case 'j_centro': return centerScript();
+    case 'j_tienda': return shopScript();
+    case 'j_gym': return jacaGymScript();
+    case 'j_catedral': {
+      await say('La Catedral de San Pedro de Jaca es del siglo XI. Fíjate en el ajedrezado jaqués que decora sus muros.');
+      if (!G.flags.j_sacristan) {
+        G.flags.j_sacristan = true; G.bag.super += 2; Sound.item();
+        await say('SACRISTÁN: Ese frío de la Peña Oroel no perdona. Toma 2 Superpociones.');
+      }
+      return;
+    }
+    case 'j_ayto':
+      return say('En el Ayuntamiento renacentista de Jaca se preparan las fiestas del Primer Viernes de Mayo.');
+    case 'j_ciudadela': {
+      await say('Entras en la Ciudadela. Desde la muralla ves los ciervos paseando tranquilos por el foso.');
+      if (!G.flags.j_citadel) { G.flags.j_citadel = true; G.bag.ball += 5; Sound.item(); await say('Un soldado te regala 5 Oscaballs. "¡Para la Peña Oroel!"'); }
+      return;
+    }
     case 'castillo': {
       await say('Las ruinas del Castillo de Montearagón dominan toda la Hoya de Huesca. Se ve hasta el Moncayo.');
       if (!G.flags.castle) { G.flags.castle = true; G.bag.ball += 5; Sound.item(); await say('¡Entre las piedras encuentras 5 Oscaballs!'); }
       return;
     }
   }
+}
+
+async function travel(to) {
+  await say('¡Pasajeros al tren! El tren de la línea Huesca-Canfranc se pone en marcha...', { wait: false });
+  Sound.seq([[330, 0.15], [0, 0.1], [330, 0.15], [0, 0.1], [440, 0.4]], 'square', 0.04);
+  await sleep(900);
+  hideDialog();
+  await tween(500, k => (fade = k));
+  setMap(to);
+  placePlayer(CUR.station);
+  saveGame(true);
+  await sleep(500);
+  await tween(500, k => (fade = 1 - k));
+  banner = { text: CUR.name, t: 2.2 };
+  await say(to === 'jaca' ? '¡Has llegado a Jaca, a los pies del Pirineo! Hace fresquito...' : '¡De vuelta en Huesca!');
+}
+
+async function jacaGymScript() {
+  const team = G.flags.badgeJaca
+    ? [['nevero', 26], ['arminin', 26], ['mallorroc', 26], ['aneton', 28]]
+    : [['nevero', 17], ['arminin', 18], ['aneton', 20]];
+  if (G.flags.badgeJaca) {
+    await say('NIEVES: ¡Hola de nuevo, campeón del Alto Aragón!');
+    say('¿Quieres una revancha sobre el hielo?', { wait: false });
+    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
+  } else {
+    await say('Entras en el Pabellón de Hielo de Jaca. Hace un frío que pela y el suelo resbala...');
+    await say('NIEVES: ¡Bienvenido a la pista! Soy Nieves, Líder del Gimnasio de Jaca.');
+    await say('NIEVES: Mis Oscamon de hielo entrenan en las pistas de Candanchú y Astún. ¿Aguantarás el frío?');
+  }
+  const r = await battle({ trainer: { name: 'Líder Nieves', pal: ['#eef6ff', '#3a7ad0', '#2a3a6a'], money: G.flags.badgeJaca ? 250 : 400,
+    lose: '¡Me has derretido! Tus Oscamon arden de energía.', team }, bg: 'snow' });
+  if (r !== 'win' || G.flags.badgeJaca) return;
+  G.flags.badgeJaca = true;
+  await say('NIEVES: Te la has ganado. ¡La MEDALLA OROEL!');
+  Sound.catch();
+  await say('¡Has conseguido la MEDALLA OROEL!');
+  await say('¡Con dos medallas eres el mejor entrenador del Alto Aragón! De Huesca al Pirineo, todos conocen tu nombre.');
+  saveGame(true);
 }
 
 async function labScript() {
@@ -308,7 +385,7 @@ async function labScript() {
 }
 
 async function centerScript() {
-  await say('ENFERMERA: ¡Bienvenido al Centro Oscamon de Huesca!');
+  await say(`ENFERMERA: ¡Bienvenido al Centro Oscamon de ${CUR.name}!`);
   for (;;) {
     say('¿Qué deseas?', { wait: false });
     const i = await choose(['Curar a mis Oscamon', 'Usar la Caja', 'Adiós'], { cancel: true });
@@ -410,7 +487,7 @@ async function mainMenu() {
   for (;;) {
     hideDialog();
     const i = await choose(['OSCAMON', 'MOCHILA', 'OSCADEX', 'GUARDAR', `SONIDO: ${Sound.muted ? 'NO' : 'SÍ'}`, 'SALIR'],
-      { title: `${G.money} € · Medallas: ${G.badges}` });
+      { title: `${G.money} € · Medallas: ${badgeCount()}` });
     if (i < 0 || i === 5) return;
     if (i === 0) {
       if (!G.party.length) { await say('Aún no tienes ningún Oscamon.'); continue; }
@@ -470,8 +547,8 @@ function camera() {
   const k = player.moving ? player.t : 0;
   const px = (player.x + (player.tx - player.x) * k) * 16, py = (player.y + (player.ty - player.y) * k) * 16;
   let cx = px + 8 - VW / 2, cy = py + 8 - VH / 2;
-  cx = Math.max(0, Math.min(MAP_W * 16 - VW, cx));
-  cy = Math.max(0, Math.min(MAP_H * 16 - VH, cy));
+  cx = Math.max(0, Math.min(CUR.w * 16 - VW, cx));
+  cy = Math.max(0, Math.min(CUR.h * 16 - VH, cy));
   return [Math.round(cx * SCALE) / SCALE, Math.round(cy * SCALE) / SCALE, px, py];
 }
 
@@ -490,13 +567,14 @@ function renderWorld(t) {
     const c = tileAt(x, y), fr = (c === 'R' && tileAt(x, y - 1) !== 'R' ? TILES.Rtop : TILES[c]) || TILES['.'];
     ctx.drawImage(fr[wf % fr.length], x * 16 - cx, y * 16 - cy);
   }
-  for (const b of BUILDINGS) {
+  for (const b of CUR.buildings) {
     if (b.x * 16 - cx > VW + 16 || (b.x + b.w) * 16 - cx < -16 || b.y * 16 - cy > VH + 16 || (b.y + b.h) * 16 - cy < -16) continue;
     drawBuilding(ctx, b, b.x * 16 - cx, b.y * 16 - cy);
   }
-  for (const it of ITEMS_ON_MAP) if (!G.flags[it.id]) ctx.drawImage(BALL_SPRITE, it.x * 16 - cx + 4, it.y * 16 - cy + 4 + Math.sin(t / 300) * 0.8);
-  for (const s of SIGNS) drawSign(s.x * 16 - cx, s.y * 16 - cy);
-  if (!G.flags.legend) {
+  for (const it of CUR.items) if (!G.flags[it.id]) ctx.drawImage(BALL_SPRITE, it.x * 16 - cx + 4, it.y * 16 - cy + 4 + Math.sin(t / 300) * 0.8);
+  for (const s of CUR.signs) drawSign(s.x * 16 - cx, s.y * 16 - cy);
+  const LEGEND = CUR.legend;
+  if (LEGEND && !G.flags.legend) {
     const bob = Math.sin(t / 400) * 1.5;
     ctx.globalAlpha = 0.3; ctx.fillStyle = '#000';
     ctx.beginPath(); ctx.ellipse(LEGEND.x * 16 - cx + 8, LEGEND.y * 16 - cy + 14, 10, 3, 0, 0, Math.PI * 2); ctx.fill();
@@ -504,7 +582,7 @@ function renderWorld(t) {
     ctx.drawImage(monSprite(LEGEND.sp), LEGEND.x * 16 - cx - 8, LEGEND.y * 16 - cy - 14 + bob);
   }
   // personajes ordenados por altura
-  const ents = NPCS.map(n => ({ y: n.y, draw: () => {
+  const ents = CUR.npcs.map(n => ({ y: n.y, draw: () => {
     const sx = n.x * 16 - cx, sy = n.y * 16 - cy;
     ctx.drawImage(charSprite(n.pal, n.dir, 0), sx, sy - 4);
     if (tileAt(n.x, n.y) === ',') ctx.drawImage(TALL_OVERLAY, 0, 9, 16, 7, sx, sy + 9, 16, 7);
@@ -603,6 +681,7 @@ async function titleFlow() {
   await tween(400, k => (fade = k));
   if (fresh) G = newState();
   else { G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0 }, saved.bag); }
+  setMap(G.map || 'huesca');
   placePlayer(G.pos);
   mode = 'world';
   await tween(400, k => (fade = 1 - k));
@@ -621,7 +700,6 @@ async function boot() {
   initInput();
   makeTiles(); makeOverlay();
   BALL_SPRITE = makeBallSprite(8); BALL_SMALL = makeBallSprite(6);
-  MAP = buildMap();
   resize();
   window.addEventListener('resize', resize);
   try { await Promise.race([document.fonts.load('8px "Press Start 2P"'), sleep(2500)]); } catch (e) { /* fuente opcional */ }

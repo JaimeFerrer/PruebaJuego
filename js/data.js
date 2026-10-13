@@ -5,15 +5,16 @@
 
 const TYPE_COLORS = {
   Normal: '#a8a878', Fuego: '#f08030', Agua: '#6890f0',
-  Planta: '#78c850', Roca: '#b8a038', Aire: '#7fc8d8',
+  Planta: '#78c850', Roca: '#b8a038', Aire: '#a890f0', Hielo: '#58b8d8',
 };
 
 // Tabla de eficacia: EFF[ataque][defensa]
 const EFF = {
-  Fuego:  { Planta: 2, Agua: 0.5, Roca: 0.5, Fuego: 0.5 },
+  Fuego:  { Planta: 2, Hielo: 2, Agua: 0.5, Roca: 0.5, Fuego: 0.5 },
   Agua:   { Fuego: 2, Roca: 2, Planta: 0.5, Agua: 0.5 },
   Planta: { Agua: 2, Roca: 2, Fuego: 0.5, Aire: 0.5, Planta: 0.5 },
-  Roca:   { Fuego: 2, Aire: 2, Planta: 0.5, Roca: 0.5 },
+  Roca:   { Fuego: 2, Aire: 2, Hielo: 2, Planta: 0.5, Roca: 0.5 },
+  Hielo:  { Planta: 2, Aire: 2, Fuego: 0.5, Agua: 0.5, Hielo: 0.5 },
   Aire:   { Planta: 2, Roca: 0.5 },
   Normal: { Roca: 0.5 },
 };
@@ -51,6 +52,9 @@ const MOVES = {
   tornado:     { name: 'Tornado', type: 'Aire', power: 40, acc: 100 },
   cierzo:      { name: 'Cierzo', type: 'Aire', power: 65, acc: 95 },
   salto:       { name: 'Salto de Roldán', type: 'Aire', power: 90, acc: 90 },
+  escarcha:    { name: 'Escarcha', type: 'Hielo', power: 40, acc: 100 },
+  carambano:   { name: 'Carámbano', type: 'Hielo', power: 65, acc: 95 },
+  ventisca:    { name: 'Ventisca Pirenaica', type: 'Hielo', power: 90, acc: 85 },
 };
 
 // Especies. Todas inventadas e inspiradas en Huesca y el Alto Aragón.
@@ -133,6 +137,21 @@ const SPECIES = {
     moves: [[1, 'placaje'], [1, 'endurecer'], [5, 'lanzarrocas'], [15, 'campanada']],
     desc: 'Inspirado en la leyenda de la Campana de Huesca. Su tañido se oye en todo el reino.',
   },
+  arminin: {
+    name: 'Armiñín', types: ['Hielo'], base: { hp: 44, atk: 60, def: 42, spd: 82 }, exp: 64, catch: 0.45,
+    moves: [[1, 'aranazo'], [1, 'grunido'], [8, 'escarcha'], [15, 'carambano']],
+    desc: 'El armiño del Pirineo. En invierno su pelaje se vuelve blanco como la nieve de Candanchú.',
+  },
+  nevero: {
+    name: 'Nevero', types: ['Hielo'], base: { hp: 58, atk: 46, def: 62, spd: 38 }, exp: 64, catch: 0.5,
+    moves: [[1, 'placaje'], [1, 'endurecer'], [7, 'escarcha'], [14, 'carambano'], [22, 'ventisca']],
+    desc: 'Una mancha de nieve que aguantó todo el verano a la sombra de un barranco. Siempre está fresquito.',
+  },
+  aneton: {
+    name: 'Anetón', types: ['Hielo', 'Roca'], base: { hp: 80, atk: 84, def: 92, spd: 40 }, exp: 160, catch: 0.1,
+    moves: [[1, 'placaje'], [1, 'endurecer'], [1, 'lanzarrocas'], [16, 'carambano'], [24, 'ventisca']],
+    desc: 'Nació del glaciar del Aneto, el pico más alto del Pirineo (3.404 m). Muy pocos lo han visto.',
+  },
   bayardo: {
     name: 'Bayardo', types: ['Aire', 'Normal'], base: { hp: 85, atk: 92, def: 72, spd: 100 }, exp: 200, catch: 0.12,
     moves: [[1, 'galope'], [1, 'cierzo'], [1, 'jota'], [1, 'salto']],
@@ -142,7 +161,7 @@ const SPECIES = {
 
 const DEX_ORDER = ['parrillin', 'laurenton', 'isuelin', 'isuelon', 'somontin', 'somontazo',
   'quebranto', 'cierzin', 'mallorroc', 'albahaquin', 'trenzon', 'ranisuela', 'sarrion',
-  'danzante', 'campanon', 'bayardo'];
+  'danzante', 'campanon', 'arminin', 'nevero', 'aneton', 'bayardo'];
 
 const ITEMS = {
   ball:   { name: 'Oscaball', price: 20, desc: 'Sirve para capturar Oscamon salvajes.' },

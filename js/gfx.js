@@ -422,6 +422,38 @@ const MON_DRAW = {
     p.line(10, 11, 14, 12, '#5a3a08'); p.line(22, 11, 18, 12, '#5a3a08');
     p.rect(13, 18, 6, 1, '#5a3a08');
   },
+  arminin(p) {
+    p.tri(25, 20, 31, 15, 30, 22, '#f4f8fc'); p.ball(30, 16, 2, 2, '#202028');
+    for (const x of [12, 15, 21, 24]) p.rect(x, 23, 2, 5, '#e4ecf4');
+    p.ball(18, 20, 10, 5, '#f4f8fc');
+    p.ell(18, 23, 7, 1.5, '#d8e4f0');
+    p.ball(9, 14, 5.5, 5, '#f8fbff');
+    p.ell(5, 9, 2, 2.5, '#f8fbff'); p.ell(12, 9, 2, 2.5, '#f8fbff'); p.px(5, 9, '#f0b0c0'); p.px(12, 9, '#f0b0c0');
+    p.rect(6, 13, 2, 2, '#101018'); p.rect(11, 13, 2, 2, '#101018'); p.px(6, 13, '#fff');
+    p.rect(8, 16, 2, 1, '#e07080');
+    p.line(3, 16, 6, 16, '#a8b8c8'); p.line(12, 16, 15, 16, '#a8b8c8');
+  },
+  nevero(p) {
+    p.line(4, 12, 10, 18, '#7a5030'); p.line(28, 12, 22, 18, '#7a5030'); p.px(4, 11, '#7a5030'); p.px(28, 11, '#7a5030');
+    p.ball(16, 23, 12, 7.5, '#eaf4ff');
+    p.ball(16, 12, 7, 6, '#f4f9ff');
+    for (const [x, y] of [[9, 25], [22, 21], [14, 27], [20, 26]]) p.px(x, y, '#c4d8ee');
+    p.rect(13, 10, 2, 2, '#202830'); p.rect(18, 10, 2, 2, '#202830');
+    p.tri(15, 13, 18, 13, 16.5, 17, '#f08a30');
+    for (const y of [20, 24]) p.rect(15, y, 2, 2, '#4a6a8a');
+    p.ell(16, 6, 5, 1.5, '#5a9ad8'); p.rect(13, 3, 6, 3, '#5a9ad8'); p.rect(13, 4, 6, 1, '#f4f4f4');
+  },
+  aneton(p) {
+    p.ball(5, 19, 4, 6, '#7c7c8a'); p.ball(27, 19, 4, 6, '#7c7c8a');
+    p.ball(16, 19, 11, 10, '#8c8c9a');
+    p.ell(16, 10, 10, 3.5, '#f4f9ff');
+    for (const [x, y, h] of [[8, 9, 7], [13, 8, 9], [19, 8, 9], [24, 9, 7]]) p.tri(x - 2, y, x, y - h, x + 2, y, '#a8e8ff');
+    p.tri(2, 15, 4, 8, 6, 15, '#a8e8ff'); p.tri(26, 15, 28, 8, 30, 15, '#a8e8ff');
+    p.line(10, 22, 14, 26, '#6a6a78'); p.line(20, 21, 23, 25, '#6a6a78');
+    p.rect(11, 15, 3, 3, '#5ae0ff'); p.rect(18, 15, 3, 3, '#5ae0ff'); p.px(12, 16, '#ffffff'); p.px(19, 16, '#ffffff');
+    p.rect(13, 21, 6, 1, '#3a3a48');
+    p.rect(9, 28, 4, 2, '#6a6a78'); p.rect(19, 28, 4, 2, '#6a6a78');
+  },
   bayardo(p) {
     p.ball(20, 12, 7, 4, '#cfe4ff'); p.tri(15, 11, 28, 4, 25, 13, '#e8f2ff');
     for (const x of [13, 16, 23, 26]) { p.rect(x, 22, 2, 7, '#e4e4ec'); p.rect(x, 28, 2, 2, '#5a5a6a'); }
@@ -597,6 +629,42 @@ function drawBuilding(ctx, b, sx, sy) {
       for (const tx of [8, W - 14]) R(tx, 12, 4, 8, '#2a2620');
       R(doorX + 2, H - 20, 12, 20, '#2a2620'); ctx.fillStyle = '#2a2620'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 20, 6, Math.PI, 0); ctx.fill();
       R(30, 26, 6, 3, shade(st, 0.7)); R(70, 40, 5, 3, shade(st, 0.7));
+      break;
+    }
+    case 'clocktower': {
+      const st = '#cdb68a';
+      R(2, 4, W - 4, H - 4, st);
+      for (let x = 0; x < W; x += 8) R(x, 0, 5, 5, shade(st, 0.9));
+      R(0, 4, W, 2, shade(st, 0.75));
+      for (let y = 10; y < H; y += 7) R(2, y, W - 4, 1, shade(st, 0.88));
+      circ(W / 2, 16, 8, '#3a3a40'); circ(W / 2, 16, 7, '#f4f0e0');
+      R(W / 2 - 0.5, 10.5, 1, 6, '#202020'); R(W / 2, 15.5, 5, 1, '#202020');
+      R(W / 2 - 3, 30, 6, 12, '#3a3028'); ctx.fillStyle = '#3a3028'; ctx.beginPath(); ctx.arc(sx + W / 2, sy + 30, 3, Math.PI, 0); ctx.fill();
+      R(W / 2 - 5, H - 14, 10, 14, '#5a3a22');
+      ctx.strokeStyle = '#2a2a30'; ctx.strokeRect(sx + 2.5, sy + 4.5, W - 5, H - 5);
+      break;
+    }
+    case 'icerink': {
+      R(0, 14, W, H - 14, '#e4f0f8');
+      ctx.fillStyle = '#3a6ab0'; ctx.beginPath(); ctx.ellipse(sx + W / 2, sy + 16, W / 2, 14, 0, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#5a8ad0'; ctx.beginPath(); ctx.ellipse(sx + W / 2, sy + 16, W / 2 - 6, 9, 0, Math.PI, 0); ctx.fill();
+      R(0, 14, W, 3, '#2a4a80');
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(sx + W / 2, sy + 9); ctx.lineTo(sx + W / 2 + Math.cos(a) * 5, sy + 9 + Math.sin(a) * 5); ctx.stroke(); }
+      R(W / 2 - 22, 21, 44, 9, '#1a3060'); T('GIMNASIO', W / 2, 23, '#a8e8ff');
+      for (let i = 0; i < b.w; i++) if (i !== b.door) R(i * 16 + 3, 36, 10, 16, '#9fd4f0');
+      R(doorX + 2, H - 15, 12, 15, '#1a3060'); R(doorX + 3, H - 14, 10, 14, '#c4ecff'); R(doorX + 7.5, H - 14, 1, 14, '#1a3060');
+      ctx.lineWidth = 1; outline(); break;
+    }
+    case 'citadel': {
+      const st = '#b8a47c', dk = '#8a7a58';
+      const cxp = W / 2, cyp = H / 2 + 2, r1 = 40, r2 = 26;
+      const pts = [];
+      for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? r2 : r1; pts.push([cxp + Math.cos(a) * r * 1.15, cyp + Math.sin(a) * r * 0.9]); }
+      poly(pts, dk);
+      poly(pts.map(([x, y]) => [cxp + (x - cxp) * 0.88, cyp + (y - cyp) * 0.88]), st);
+      R(cxp - 18, cyp - 14, 36, 22, '#d8c8a0'); R(cxp - 18, cyp - 16, 36, 3, '#a84a30');
+      R(cxp - 1, cyp - 30, 2, 14, '#404040'); R(cxp + 1, cyp - 30, 10, 4, '#f4d020'); R(cxp + 1, cyp - 29, 10, 1, '#d01818'); R(cxp + 1, cyp - 27.5, 10, 1, '#d01818');
+      R(doorX + 3, H - 18, 10, 18, '#2a2620'); ctx.fillStyle = '#2a2620'; ctx.beginPath(); ctx.arc(sx + doorX + 8, sy + H - 18, 5, Math.PI, 0); ctx.fill();
       break;
     }
     case 'fountain': {
