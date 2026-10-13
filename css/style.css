@@ -5,6 +5,7 @@
   --frame: #384858;
   --accent: #e04848;
   --u: 3px;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
