@@ -134,7 +134,7 @@ const SIGNS = [
   { x: 9, y: 21, text: 'MALLOS DE RIGLOS →\nGigantes de roca roja. Hogar de buitres y Mallorroc.' },
   { x: 54, y: 12, text: 'CASTILLO DE MONTEARAGÓN\nFortaleza del siglo XI construida por Sancho Ramírez.' },
   { x: 25, y: 10, text: 'SALTO DE ROLDÁN\nCuenta la leyenda que el caballo de Roldán saltó de peña en peña...' },
-  { x: 32, y: 52, text: 'ESTACIÓN INTERMODAL\nTrenes y autobuses a Zaragoza, Jaca y Canfranc.' },
+  { x: 32, y: 52, text: 'ESTACIÓN INTERMODAL\nLínea Huesca-Canfranc: Ayerbe, Sabiñánigo, Jaca y Canfranc.' },
   { x: 32, y: 38, text: 'CÍRCULO OSCENSE\nEdificio modernista de 1904.' },
   { x: 15, y: 22, text: 'EL COSO\nLa calle que rodea el casco antiguo, donde estaba la muralla.' },
 ];
@@ -149,7 +149,7 @@ const NPCS = [
   { id: 'senora', x: 35, y: 44, dir: 'down', pal: ['#8a3a2a', '#40a080', '#4a3a2a'],
     text: ['En agosto la ciudad se viste de blanco y verde por San Lorenzo.', 'Pañuelo verde y albahaca... ¡y Oscamon de fuego por todas partes!'] },
   { id: 'danzante', x: 29, y: 42, dir: 'left', pal: ['#d02030', '#f4f4f4', '#f4f4f4'],
-    trainer: { name: 'Danzante Pedro', team: [['danzante', 6], ['trenzon', 6]], money: 60,
+    trainer: { name: 'Danzante Pedro', team: [['trenzon', 4], ['danzante', 5]], money: 60,
       intro: '¡Eh! ¡Los danzantes de Huesca no perdemos el ritmo! ¡Vamos a bailar!',
       lose: '¡Me has hecho perder el paso!', after: 'Entrénate bien antes de ir al Gimnasio del Palacio.' } },
   { id: 'montanera', x: 28, y: 14, dir: 'left', pal: ['#c08030', '#3070c0', '#5a4a3a'],

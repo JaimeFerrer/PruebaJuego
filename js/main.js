@@ -34,14 +34,14 @@ function text(str, x, y, color, size = 6, align = 'left') {
 function newState() {
   return {
     party: [], box: [], bag: { ball: 0, potion: 0, super: 0 }, money: 100,
-    flags: {}, seen: {}, caught: {}, badges: 0, map: 'huesca', pos: { ...START },
+    flags: {}, seen: {}, caught: {}, badges: 0, map: 'world', pos: { ...WORLD_START },
   };
 }
 function markSeen(sp) { G.seen[sp] = true; }
 function markCaught(sp) { G.seen[sp] = true; G.caught[sp] = true; }
-const badgeCount = () => (G.flags.badge ? 1 : 0) + (G.flags.badgeJaca ? 1 : 0);
+const badgeCount = () => ['badge', 'badgeBarbastro', 'badgeJaca'].filter(f => G.flags[f]).length;
 function setMap(id) {
-  CUR = MAPS[id] || MAPS.huesca;
+  CUR = MAPS[id] || MAPS.world;
   if (!CUR.tiles) CUR.tiles = CUR.build();
   MAP = CUR.tiles;
   G.map = CUR.id;
@@ -61,28 +61,16 @@ function loadGame() {
 const tileAt = (x, y) => (MAP[y] && MAP[y][x]) || 'T';
 const signAt = (x, y) => CUR.signs.find(s => s.x === x && s.y === y);
 const npcAt = (x, y) => CUR.npcs.find(n => n.x === x && n.y === y);
-const legendAt = (x, y) => !!CUR.legend && !G.flags.legend && CUR.legend.x === x && CUR.legend.y === y;
+const legendAt = (x, y) => (CUR.legends || []).find(l => !G.flags[l.flag] && l.x === x && l.y === y);
 const itemAt = (x, y) => CUR.items.find(i => i.x === x && i.y === y && !G.flags[i.id]);
 function doorAt(x, y) { return CUR.buildings.find(b => b.door >= 0 && b.x + b.door === x && b.y + b.h - 1 === y); }
 function blocked(x, y) {
-  return SOLID.has(tileAt(x, y)) || !!signAt(x, y) || !!npcAt(x, y) || legendAt(x, y);
+  return SOLID.has(tileAt(x, y)) || !!signAt(x, y) || !!npcAt(x, y) || !!legendAt(x, y);
 }
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const OPP = { up: 'down', down: 'up', left: 'right', right: 'left' };
 
 const zoneName = (x, y) => CUR.zoneName(x, y);
-function huescaZoneName(x, y) {
-  if (y < 22 && x < 14) return 'Mallos de Riglos';
-  if (y < 10 && x >= 18 && x <= 36) return 'Salto de Roldán';
-  if (y < 22 && x < 41) return 'Ruta del Pirineo';
-  if (x >= 41) return y < 13 ? 'Castillo de Montearagón' : 'Riberas del Isuela';
-  if (x < 12) return 'Huertas de la Hoya';
-  if (x >= 12 && x <= 20 && y >= 39 && y <= 50) return 'Parque Miguel Servet';
-  if (x >= 13 && x <= 38 && y >= 23 && y <= 37) return 'Casco Antiguo';
-  if (y >= 52) return 'Vía del tren';
-  return 'Huesca';
-}
-
 // ---------------- Bucle ----------------
 let lastT = performance.now();
 function loop(now) {
@@ -122,7 +110,7 @@ function tryMove(d) {
     if (now - lastBump > 300) { Sound.bump(); lastBump = now; }
     return;
   }
-  if (tileAt(nx, ny) === ',' && !G.party.length) {
+  if ((tileAt(nx, ny) === ',' || tileAt(nx, ny) === 'V') && !G.party.length) {
     runScript(async () => {
       await say('¡Espera! Es peligroso entrar en la hierba alta sin un Oscamon.');
       await say('Ve al Laboratorio del Profesor Cajal, justo al este de tu casa.');
@@ -154,7 +142,8 @@ function onStep() {
       }
     }
   }
-  if (tileAt(player.x, player.y) === ',' && Math.random() < 0.11) runScript(wildEncounter);
+  const tl = tileAt(player.x, player.y);
+  if ((tl === ',' && Math.random() < 0.09) || (tl === 'V' && Math.random() < 0.05)) runScript(wildEncounter);
 }
 
 async function runScript(fn) {
@@ -174,35 +163,35 @@ worldPress = btn => {
   if (s) return runScript(() => say(s.text));
   const n = npcAt(x, y);
   if (n) return runScript(() => talkTo(n));
-  if (legendAt(x, y)) return runScript(legendEncounter);
+  const L = legendAt(x, y);
+  if (L) return runScript(() => legendEncounter(L));
   const door = doorAt(x, y);
   if (door) return runScript(() => enterBuilding(door));
   const t = tileAt(x, y);
-  if (t === '~') return runScript(() => say('El agua del Isuela baja fresquita desde la sierra de Guara.'));
-  if (t === 'R') return runScript(() => say('Conglomerado rojo de los Mallos. ¡Impresionante!'));
+  if (t === '~') return runScript(() => say('El agua baja fresquita desde las montañas del Pirineo.'));
+  if (t === 'R') return runScript(() => say('Conglomerado rojo de los Mallos de Riglos. ¡Impresionante!'));
   if (t === 'r') return runScript(() => say('La vía del tren Huesca-Canfranc. ¡No se juega en las vías!'));
 };
 
 // ---------------- Encuentros ----------------
-function zoneAt(x, y) { return CUR.zones.find(z => x >= z.x && x < z.x + z.w && y >= z.y && y < z.y + z.h) || CUR.zones[CUR.defaultZone]; }
+function zoneAt(x, y) { return CUR.zoneAt(x, y); }
 
 async function wildEncounter() {
   const z = zoneAt(player.x, player.y);
-  const total = z.list.reduce((s, e) => s + e[3], 0);
+  const total = z.list.reduce((s, e) => s + e[1], 0);
   let r = Math.random() * total, pick = z.list[0];
-  for (const e of z.list) { if ((r -= e[3]) < 0) { pick = e; break; } }
-  const lvl = pick[1] + Math.floor(Math.random() * (pick[2] - pick[1] + 1));
+  for (const e of z.list) { if ((r -= e[1]) < 0) { pick = e; break; } }
+  const lvl = z.lv[0] + Math.floor(Math.random() * (z.lv[1] - z.lv[0] + 1));
   await battle({ wild: makeMon(pick[0], lvl), bg: z.bg });
 }
 
-async function legendEncounter() {
-  if (!G.party.length) return say('Algo enorme y blanco te observa desde las peñas... Mejor vuelve con un Oscamon.');
+async function legendEncounter(L) {
+  if (!G.party.length) return say('Algo enorme te observa desde las rocas... Mejor vuelve con un Oscamon.');
   Sound.tone(500, 0.6, 'sawtooth', 0.05, 300);
-  await say('¡Un relincho resuena entre las peñas del Salto de Roldán!');
-  await say('¡Es BAYARDO, el legendario caballo de Roldán!');
-  const res = await battle({ wild: makeMon(CUR.legend.sp, CUR.legend.lvl), bg: 'rock' });
-  if (res === 'caught') G.flags.legend = true;
-  else if (res === 'win') { G.flags.legend = true; await say('Bayardo dio un salto de peña en peña y desapareció en el horizonte...'); }
+  for (const line of L.intro) await say(line);
+  const res = await battle({ wild: makeMon(L.sp, L.lvl), bg: L.sp === 'bucardo' ? 'snow' : 'rock' });
+  if (res === 'caught') G.flags[L.flag] = true;
+  else if (res === 'win') { G.flags[L.flag] = true; await say(`${SPECIES[L.sp].name} dio un salto de peña en peña y desapareció en el horizonte...`); }
 }
 
 async function trainerSpotted(n) {
@@ -216,7 +205,7 @@ async function trainerSpotted(n) {
 async function trainerBattle(n) {
   const t = n.trainer;
   await say(`${t.name.toUpperCase()}: ${t.intro}`);
-  const r = await battle({ trainer: { ...t, pal: n.pal }, bg: n.id === 'montanera' ? 'rock' : CUR.id === 'jaca' ? 'snow' : 'grass' });
+  const r = await battle({ trainer: { ...t, pal: n.pal }, bg: zoneAt(n.x, n.y).bg });
   if (r === 'win') G.flags['tr_' + n.id] = true;
 }
 
@@ -233,6 +222,12 @@ async function talkTo(n) {
 // ---------------- Edificios ----------------
 async function enterBuilding(b) {
   Sound.blip();
+  if (b.station) return trainScript(b);
+  if (b.kind === 'center') {
+    G.lastCenter = { x: b.x + b.door, y: b.y + b.h, dir: 'down' };
+    return centerScript(b.town || (b.id === 'j_centro' ? 'Jaca' : 'Huesca'));
+  }
+  if (b.kind === 'shop') return shopScript();
   switch (b.id) {
     case 'lab': return labScript();
     case 'centro': return centerScript();
@@ -271,20 +266,6 @@ async function enterBuilding(b) {
     case 'casino': return say('El Círculo Oscense está de baile. Suena una jota y alguien grita "¡Viva San Lorenzo!".');
     case 'casa1': return say('Una familia está comiendo migas con uva. "¿Gustas?", te preguntan. ¡Qué amables!');
     case 'casa2': return say('Un señor mayor ve el fútbol: "¡Aúpa SD Huesca!". Mejor no molestar.');
-    case 'estacion': {
-      if (!G.flags.badge) {
-        await say('JEFE DE ESTACIÓN: El tren sube por el Pirineo hasta Jaca y Canfranc.');
-        return say('JEFE DE ESTACIÓN: Pero solo viajan entrenadores con la MEDALLA CAMPANA. ¡Vence a Ramiro II en el Palacio!');
-      }
-      say('JEFE DE ESTACIÓN: ¿Quieres un billete a Jaca? ¡Allí está el Gimnasio del Pabellón de Hielo!', { wait: false });
-      if ((await choose(['Sí, a Jaca', 'No, gracias'])) === 0) return travel('jaca');
-      return;
-    }
-    case 'j_estacion': {
-      say('JEFE DE ESTACIÓN: ¿Vuelves a Huesca?', { wait: false });
-      if ((await choose(['Sí, a Huesca', 'No, me quedo'])) === 0) return travel('huesca');
-      return;
-    }
     case 'j_centro': return centerScript();
     case 'j_tienda': return shopScript();
     case 'j_gym': return jacaGymScript();
@@ -308,7 +289,48 @@ async function enterBuilding(b) {
       if (!G.flags.castle) { G.flags.castle = true; G.bag.ball += 5; Sound.item(); await say('¡Entre las piedras encuentras 5 Oscaballs!'); }
       return;
     }
+    case 'loarre': {
+      await say('Entras en el Castillo de Loarre. Sus murallas románicas, del siglo XI, siguen en pie casi intactas.');
+      await say('Desde la torre del homenaje se ve toda la Hoya de Huesca, hasta los Monegros.');
+      if (!G.flags.loarre) { G.flags.loarre = true; G.bag.super += 3; Sound.item(); await say('Un guía te regala 3 Superpociones. "¡Para los valientes que suben hasta aquí!"'); }
+      return;
+    }
+    case 'sjpena': {
+      await say('El Monasterio de San Juan de la Peña está construido bajo una enorme roca.');
+      await say('En su panteón descansan los primeros reyes de Aragón. Cuenta la leyenda que aquí se guardó el Santo Grial.');
+      if (!G.flags.sjpena) { G.flags.sjpena = true; G.bag.ball += 5; Sound.item(); await say('Un monje te regala 5 Oscaballs.'); }
+      return;
+    }
+    case 'monzon_castillo':
+      await say('El Castillo de Monzón fue de los templarios. Aquí se crió de niño el rey Jaime I el Conquistador.');
+      return say('Desde sus murallas se ve el río Cinca serpenteando por la llanura.');
+    case 'b_gym': return barbastroGymScript();
+    case 'refugio': {
+      await say('REFUGIO DE GÓRIZ: Al pie del Monte Perdido, a 2.200 m. El guarda te da algo caliente.');
+      healParty(); Sound.heal(); await sleep(600);
+      return say('¡Tus Oscamon han descansado y están como nuevos!');
+    }
+    case 'refugio_aneto': {
+      await say('REFUGIO DE LA RENCLUSA: Desde aquí sale la ruta al Aneto por el Portillón Superior.');
+      healParty(); Sound.heal(); await sleep(600);
+      return say('¡Tus Oscamon han descansado y están como nuevos!');
+    }
   }
+  if (b.heal) { for (const line of b.text) await say(line); healParty(); Sound.heal(); await sleep(600); return say('¡Tus Oscamon se han recuperado por completo!'); }
+  if (b.text) { for (const line of b.text) await say(line); return; }
+  if (b.kind === 'house') return say('La puerta está cerrada. Dentro se oye la radio.');
+}
+
+async function trainScript(b) {
+  if (!G.flags.badge) {
+    await say('JEFE DE ESTACIÓN: Esta es la línea Huesca-Canfranc, que sube por Ayerbe, Sabiñánigo y Jaca.');
+    return say('JEFE DE ESTACIÓN: Solo viajan entrenadores con la MEDALLA CAMPANA. ¡Vence a Ramiro II en Huesca! (Andando también puedes llegar a todas partes.)');
+  }
+  const dests = Object.keys(STATIONS).filter(k => k !== b.station);
+  say('JEFE DE ESTACIÓN: Línea Huesca-Canfranc. ¿A dónde viajas?', { wait: false });
+  const i = await choose([...dests.map(k => STATIONS[k].name), 'No viajar']);
+  if (i < 0 || i === dests.length) return;
+  await travel(dests[i]);
 }
 
 async function travel(to) {
@@ -317,13 +339,36 @@ async function travel(to) {
   await sleep(900);
   hideDialog();
   await tween(500, k => (fade = k));
-  setMap(to);
-  placePlayer(CUR.station);
+  placePlayer(STATIONS[to]);
   saveGame(true);
   await sleep(500);
   await tween(500, k => (fade = 1 - k));
-  banner = { text: CUR.name, t: 2.2 };
-  await say(to === 'jaca' ? '¡Has llegado a Jaca, a los pies del Pirineo! Hace fresquito...' : '¡De vuelta en Huesca!');
+  banner = { text: lastZone, t: 2.2 };
+  await say(`¡Has llegado a la estación de ${STATIONS[to].name}!`);
+}
+
+async function barbastroGymScript() {
+  const again = !!G.flags.badgeBarbastro;
+  const team = again ? [['albahaquin', 24], ['somontin', 24], ['ranisuela', 24], ['somontazo', 26]]
+    : [['albahaquin', 14], ['somontin', 15], ['somontazo', 17]];
+  if (again) {
+    await say('VERO: ¡Hola de nuevo! Esta añada mis Oscamon están aún mejor.');
+    say('¿Quieres una revancha?', { wait: false });
+    if ((await choose(['¡Sí!', 'No, gracias'])) !== 0) return;
+  } else {
+    await say('Entras en la bodega. Huele a madera de roble y a uva madura...');
+    await say('VERO: ¡Bienvenido al Somontano! Soy Vero, Líder del Gimnasio de Barbastro.');
+    await say('VERO: Mis Oscamon de tipo Planta crecen entre las viñas. Contra el fuego sufren... ¡pero no se lo digas a nadie!');
+  }
+  const r = await battle({ trainer: { name: 'Líder Vero', pal: ['#6a2a4a', '#e8d8c0', '#4a2a3a'], money: again ? 250 : 350,
+    lose: '¡Qué buena cosecha la tuya!', team }, bg: 'grass' });
+  if (r !== 'win' || again) return;
+  G.flags.badgeBarbastro = true;
+  await say('VERO: Te has ganado la MEDALLA SOMONTANO. ¡Salud!');
+  Sound.catch();
+  await say('¡Has conseguido la MEDALLA SOMONTANO!');
+  await say('VERO: La siguiente Líder está en Jaca, en el Pabellón de Hielo. Allí hace mucho frío: lleva Oscamon de fuego o de roca.');
+  saveGame(true);
 }
 
 async function jacaGymScript() {
@@ -346,7 +391,7 @@ async function jacaGymScript() {
   await say('NIEVES: Te la has ganado. ¡La MEDALLA OROEL!');
   Sound.catch();
   await say('¡Has conseguido la MEDALLA OROEL!');
-  await say('¡Con dos medallas eres el mejor entrenador del Alto Aragón! De Huesca al Pirineo, todos conocen tu nombre.');
+  await say(badgeCount() >= 3 ? '¡Tienes las tres medallas! Eres el CAMPEÓN DEL ALTO ARAGÓN. De Huesca al Pirineo, todos conocen tu nombre.' : 'Te falta alguna medalla para ser campeón del Alto Aragón. ¡Sigue explorando!');
   saveGame(true);
 }
 
@@ -371,9 +416,11 @@ async function labScript() {
     }
     G.bag.ball += 5; G.bag.potion += 3; Sound.item();
     await say('PROF. CAJAL: Llévate también 5 Oscaballs y 3 Pociones.');
-    await say('En la hierba alta del Parque Miguel Servet y en las afueras viven Oscamon salvajes. ¡Captúralos!');
-    await say('Cuando estés en forma, desafía a Ramiro II en el Gimnasio del Palacio de los Reyes de Aragón, junto a la Catedral.');
-    await say('Pulsa MENÚ (tecla M) para ver tu equipo, la mochila, el Oscadex y guardar la partida. ¡Suerte!');
+    await say('Empieza por la hierba alta del Parque Miguel Servet: allí los Oscamon son débiles, de nivel 2 o 3.');
+    await say('Cuanto más lejos de Huesca vayas, más fuertes serán. El Pirineo es para entrenadores expertos.');
+    await say('En combate, los ataques marcados con ▲ son muy eficaces y los marcados con ▼, poco eficaces.');
+    await say('Hay tres Gimnasios: Huesca (Ramiro II), Barbastro (Vero) y Jaca (Nieves). ¡Consigue las tres medallas!');
+    await say('Pulsa MENÚ (tecla M) para ver el MAPA de la provincia, tu equipo, la mochila y para guardar. ¡Suerte!');
     saveGame(true);
     return;
   }
@@ -384,8 +431,8 @@ async function labScript() {
   else await say('Explora los Mallos de Riglos, el Salto de Roldán y las riberas del Isuela. ¡Hay mucho por descubrir!');
 }
 
-async function centerScript() {
-  await say(`ENFERMERA: ¡Bienvenido al Centro Oscamon de ${CUR.name}!`);
+async function centerScript(town = 'Huesca') {
+  await say(`ENFERMERA: ¡Bienvenido al Centro Oscamon de ${town}!`);
   for (;;) {
     say('¿Qué deseas?', { wait: false });
     const i = await choose(['Curar a mis Oscamon', 'Usar la Caja', 'Adiós'], { cancel: true });
@@ -486,10 +533,11 @@ async function showSummary(m) {
 async function mainMenu() {
   for (;;) {
     hideDialog();
-    const i = await choose(['OSCAMON', 'MOCHILA', 'OSCADEX', 'GUARDAR', `SONIDO: ${Sound.muted ? 'NO' : 'SÍ'}`, 'SALIR'],
+    const i = await choose(['MAPA', 'OSCAMON', 'MOCHILA', 'OSCADEX', 'GUARDAR', `SONIDO: ${Sound.muted ? 'NO' : 'SÍ'}`, 'SALIR'],
       { title: `${G.money} € · Medallas: ${badgeCount()}` });
-    if (i < 0 || i === 5) return;
-    if (i === 0) {
+    if (i < 0 || i === 6) return;
+    if (i === 0) { await showMap(); continue; }
+    if (i === 1) {
       if (!G.party.length) { await say('Aún no tienes ningún Oscamon.'); continue; }
       for (;;) {
         const k = await partyChoose('EQUIPO');
@@ -498,7 +546,7 @@ async function mainMenu() {
         if (j === 0) await showSummary(G.party[k]);
         else if (j === 1) { const [m] = G.party.splice(k, 1); G.party.unshift(m); await say(`${monName(m)} irá el primero.`); }
       }
-    } else if (i === 1) {
+    } else if (i === 2) {
       for (;;) {
         hideDialog();
         const keys = Object.keys(ITEMS).filter(k => G.bag[k] > 0);
@@ -518,7 +566,7 @@ async function mainMenu() {
         Sound.heal();
         await say(`${monName(m)} recuperó ${m.hp - before} PS.`);
       }
-    } else if (i === 2) {
+    } else if (i === 3) {
       let start = 0;
       for (;;) {
         hideDialog();
@@ -534,9 +582,9 @@ async function mainMenu() {
         if (!G.seen[sp]) { await say('Aún no has visto a este Oscamon.'); continue; }
         await say(`${SPECIES[sp].name} (tipo ${SPECIES[sp].types.join('/')}).\n${SPECIES[sp].desc}`);
       }
-    } else if (i === 3) {
-      await say(saveGame() ? '¡Partida guardada!' : 'No se ha podido guardar la partida en este navegador.');
     } else if (i === 4) {
+      await say(saveGame() ? '¡Partida guardada!' : 'No se ha podido guardar la partida en este navegador.');
+    } else if (i === 5) {
       Sound.muted = !Sound.muted;
     }
   }
@@ -573,13 +621,13 @@ function renderWorld(t) {
   }
   for (const it of CUR.items) if (!G.flags[it.id]) ctx.drawImage(BALL_SPRITE, it.x * 16 - cx + 4, it.y * 16 - cy + 4 + Math.sin(t / 300) * 0.8);
   for (const s of CUR.signs) drawSign(s.x * 16 - cx, s.y * 16 - cy);
-  const LEGEND = CUR.legend;
-  if (LEGEND && !G.flags.legend) {
+  for (const L of CUR.legends || []) {
+    if (G.flags[L.flag]) continue;
     const bob = Math.sin(t / 400) * 1.5;
     ctx.globalAlpha = 0.3; ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.ellipse(LEGEND.x * 16 - cx + 8, LEGEND.y * 16 - cy + 14, 10, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(L.x * 16 - cx + 8, L.y * 16 - cy + 14, 10, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.drawImage(monSprite(LEGEND.sp), LEGEND.x * 16 - cx - 8, LEGEND.y * 16 - cy - 14 + bob);
+    ctx.drawImage(monSprite(L.sp), L.x * 16 - cx - 8, L.y * 16 - cy - 14 + bob);
   }
   // personajes ordenados por altura
   const ents = CUR.npcs.map(n => ({ y: n.y, draw: () => {
@@ -646,12 +694,55 @@ function renderTitle(t) {
   text('Juego de fans no oficial', 120, 152, '#3a5a3a', 4, 'center');
 }
 
+// ---------------- Mapa de la provincia ----------------
+let MINIMAP = null;
+const MM_COLORS = { '.': '#7ccb5c', ',': '#4f9a3a', '=': '#e8dcc0', C: '#a0a0a8', S: '#f0e8d0', D: '#c89a58', '~': '#3f88dc', H: '#a87444',
+  T: '#2f7a34', A: '#1f5a34', M: '#8a8276', n: '#f4f8fc', R: '#c4643c', F: '#7ccb5c', r: '#6a5a4a', B: '#b8503a', Y: '#e2c25a', V: '#9a8a4a', d: '#dcc79a' };
+function buildMinimap() {
+  const c = document.createElement('canvas'); c.width = CUR.w; c.height = CUR.h;
+  const g = c.getContext('2d'), img = g.createImageData(CUR.w, CUR.h);
+  for (let y = 0; y < CUR.h; y++) for (let x = 0; x < CUR.w; x++) {
+    const [r, gg, b] = hexToRgb(MM_COLORS[MAP[y][x]] || '#7ccb5c'), i = (y * CUR.w + x) * 4;
+    img.data[i] = r; img.data[i + 1] = gg; img.data[i + 2] = b; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  MINIMAP = c;
+}
+async function showMap() {
+  hideDialog();
+  if (!MINIMAP) buildMinimap();
+  mode = 'map';
+  await new Promise(res => { uiHandler = b => { if (b === 'a' || b === 'b' || b === 'start') { uiHandler = null; res(); } }; });
+  mode = 'world';
+}
+function renderMap(t) {
+  ctx.fillStyle = '#18202c'; ctx.fillRect(0, 0, VW, VH);
+  const sc = Math.min((VW - 8) / CUR.w, (VH - 20) / CUR.h), w = CUR.w * sc, h = CUR.h * sc, ox = (VW - w) / 2, oy = 16;
+  ctx.drawImage(MINIMAP, ox, oy, w, h);
+  ctx.strokeStyle = '#f0e0b0'; ctx.lineWidth = 0.6; ctx.strokeRect(ox - 0.5, oy - 0.5, w + 1, h + 1);
+  text('PROVINCIA DE HUESCA', VW / 2, 5, '#f0e0b0', 6, 'center');
+  for (const [name, x, y] of MAP_LABELS) {
+    const px = ox + x * sc, py = oy + y * sc;
+    ctx.fillStyle = '#202020'; ctx.fillRect(px - 1.2, py - 1.2, 2.4, 2.4);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(px - 0.7, py - 0.7, 1.4, 1.4);
+    const right = px < ox + w - 30;
+    text(name, px + (right ? 2.5 : -2.5) + 0.4, py - 1.6 + 0.4, '#101010', 3.4, right ? 'left' : 'right');
+    text(name, px + (right ? 2.5 : -2.5), py - 1.6, '#ffffff', 3.4, right ? 'left' : 'right');
+  }
+  if (Math.floor(t / 300) % 2) {
+    const px = ox + player.x * sc, py = oy + player.y * sc;
+    ctx.fillStyle = '#e02020'; ctx.beginPath(); ctx.arc(px, py, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.8; ctx.stroke();
+  }
+}
+
 function render(t) {
   ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, VW, VH);
   if (mode === 'title') renderTitle(t);
   else if (mode === 'battle' && B) renderBattle(t);
+  else if (mode === 'map') renderMap(t);
   else if (G) renderWorld(t);
   if (flash > 0) { ctx.fillStyle = `rgba(16,16,24,${flash * 0.85})`; ctx.fillRect(0, 0, VW, VH); }
   if (fade > 0) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, VW, VH); }
@@ -680,8 +771,11 @@ async function titleFlow() {
   hideDialog();
   await tween(400, k => (fade = k));
   if (fresh) G = newState();
-  else { G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0 }, saved.bag); }
-  setMap(G.map || 'huesca');
+  else {
+    G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0 }, saved.bag);
+    if (saved.map !== 'world') { G.pos = migratePos(saved.map, saved.pos || START); G.lastCenter = null; }
+  }
+  setMap('world');
   placePlayer(G.pos);
   mode = 'world';
   await tween(400, k => (fade = 1 - k));

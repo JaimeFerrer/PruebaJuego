@@ -113,20 +113,4 @@ function jacaZoneName(x, y) {
   return 'Jaca';
 }
 
-// ---------------- Registro de mapas ----------------
-const MAPS = {
-  huesca: {
-    id: 'huesca', name: 'Huesca', w: MAP_W, h: MAP_H, build: buildMap,
-    buildings: BUILDINGS, signs: SIGNS, npcs: NPCS, items: ITEMS_ON_MAP, legend: LEGEND, zones: ZONES, defaultZone: 1,
-    center: CENTER_SPOT, station: { x: 36, y: 52, dir: 'down' },
-    zoneName: (x, y) => huescaZoneName(x, y),
-  },
-  jaca: {
-    id: 'jaca', name: 'Jaca', w: JACA_W, h: JACA_H, build: buildJaca,
-    buildings: JACA_BUILDINGS, signs: JACA_SIGNS, npcs: JACA_NPCS, items: JACA_ITEMS, legend: null, zones: JACA_ZONES, defaultZone: 0,
-    center: { x: 11, y: 21, dir: 'down' }, station: { x: 17, y: 24, dir: 'down' },
-    zoneName: jacaZoneName,
-  },
-};
-
-if (typeof module !== 'undefined') module.exports = { MAPS };
+if (typeof module !== 'undefined') module.exports = { buildJaca };

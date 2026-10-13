@@ -143,7 +143,10 @@ async function playerAction() {
     const i = await choose(['LUCHAR', 'MOCHILA', 'OSCAMON', 'HUIR'], { layout: 'grid', cancel: false });
     if (i === 0) {
       const mv = BP().moves;
-      const j = await choose(mv.map(id => ({ label: MOVES[id].name, sub: MOVES[id].type, color: TYPE_COLORS[MOVES[id].type] })), { layout: 'grid moves' });
+      const j = await choose(mv.map(id => {
+        const m = MOVES[id], e = m.power ? effectiveness(m.type, SPECIES[BE().sp].types) : 1;
+        return { label: m.name, sub: m.type + (e > 1 ? ' ▲' : e < 1 ? ' ▼' : ''), color: TYPE_COLORS[m.type] };
+      }), { layout: 'grid moves' });
       if (j < 0) continue;
       return { type: 'move', move: mv[j] };
     }
@@ -188,7 +191,8 @@ function enemyChooseMove() {
     }
     return { id, s };
   });
-  if (Math.random() < 0.3) return scored[Math.floor(Math.random() * scored.length)].id;
+  // Los salvajes atacan al azar; los entrenadores eligen mejor
+  if (B.wild || Math.random() < 0.3) return scored[Math.floor(Math.random() * scored.length)].id;
   scored.sort((a, b) => b.s - a.s);
   return scored[0].id;
 }
@@ -235,6 +239,12 @@ async function enemyFainted() {
   const e = BE();
   const gain = Math.max(1, Math.floor(SPECIES[e.sp].exp * e.lvl / 7 * (B.wild ? 1 : 1.5)));
   await giveExp(BP(), gain);
+  const rest = G.party.filter(m => m !== BP() && m.hp > 0);
+  if (rest.length) {
+    const share = Math.max(1, Math.floor(gain / 2));
+    await say(`El resto del equipo ganó ${share} puntos de experiencia.`);
+    for (const m of rest) await giveExp(m, share, true);
+  }
   if (!B.wild && B.ei < B.enemyTeam.length - 1) {
     B.ei++;
     await sendEnemy();
@@ -243,8 +253,8 @@ async function enemyFainted() {
   return 'win';
 }
 
-async function giveExp(mon, gain) {
-  await say(`¡${monName(mon)} ganó ${gain} puntos de experiencia!`);
+async function giveExp(mon, gain, quiet) {
+  if (!quiet) await say(`¡${monName(mon)} ganó ${gain} puntos de experiencia!`);
   mon.exp += gain;
   while (mon.lvl < 100 && mon.exp >= expForLevel(mon.lvl + 1)) {
     const oldMax = maxHp(mon);
@@ -367,7 +377,7 @@ async function endBattle(result) {
   B = null;
   if (result === 'lose') {
     healParty();
-    placePlayer(CUR.center);
+    placePlayer(G.lastCenter || HOME_CENTER);
   }
   await tween(350, k => (fade = 1 - k));
   if (result === 'lose') {
