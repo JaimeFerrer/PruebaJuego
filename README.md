@@ -13,7 +13,9 @@ Abre `index.html` en el navegador. También puedes servir la carpeta con cualqui
 npx http-server .   # o: python3 -m http.server
 ```
 
-Funciona en el móvil con mandos táctiles. Para publicarlo, activa GitHub Pages en la rama principal.
+Funciona en el móvil con mandos táctiles.
+
+**Jugar online:** https://jaimeferrer.github.io/PruebaJuego/ (se publica solo con GitHub Pages cada vez que se sube a `main`).
 
 | Acción | Teclado | Móvil |
 |---|---|---|
