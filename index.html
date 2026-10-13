@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Oscamon Huesca</title>
+  <meta name="description" content="Aventura de criaturas al estilo Pokémon ambientada en Huesca y el Alto Aragón.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <div id="wrap">
+      <canvas id="screen" width="720" height="480"></canvas>
+      <div id="dialog" class="hidden"><div id="dtext"></div><div id="dnext">▼</div></div>
+      <div id="menu" class="menu hidden"><div id="mtitle"></div><ul id="mlist"></ul></div>
+    </div>
+
+    <div id="controls">
+      <div class="dpad">
+        <button data-btn="up" class="up" aria-label="Arriba">▲</button>
+        <button data-btn="left" class="left" aria-label="Izquierda">◀</button>
+        <button data-btn="right" class="right" aria-label="Derecha">▶</button>
+        <button data-btn="down" class="down" aria-label="Abajo">▼</button>
+      </div>
+      <div class="mid"><button data-btn="start" class="start">MENÚ</button></div>
+      <div class="ab">
+        <button data-btn="b" class="b">B</button>
+        <button data-btn="a" class="a">A</button>
+      </div>
+    </div>
+
+    <p id="help">Flechas/WASD: mover · Z/Espacio/Enter: A · X/Esc: B (mantener = correr) · M: Menú</p>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/gfx.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
