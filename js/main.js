@@ -723,6 +723,8 @@ function renderWorld(t) {
 // ---------------- Pantalla de inicio ----------------
 // Se dibuja a la resolución real del lienzo (720×480) para que tenga más detalle.
 let TITLE = null;
+const LOGO = new Image();
+LOGO.src = 'img/logo.svg';
 function titleScene() {
   if (TITLE) return TITLE;
   const r = srand(2024);
@@ -834,19 +836,29 @@ function renderTitle(t) {
     const a = Math.max(0, Math.sin(t / 400 + ph)); if (a < 0.2) continue;
     ctx.fillStyle = `rgba(255,250,210,${a * 0.8})`; ctx.fillRect(x - sz * 2, y, sz * 4, 1); ctx.fillRect(x, y - sz * 2, 1, sz * 4);
   }
-  // Logotipo con relieve y brillo
+  // Logotipo: el emblema hace de «O» y el resto de la palabra lleva relieve y brillo
   const bob = Math.sin(t / 700) * 4, ly = 34 + bob;
-  ctx.font = '70px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  for (let k = 9; k >= 1; k--) { ctx.fillStyle = k > 6 ? '#0e1838' : '#1d3a8a'; ctx.fillText('OSCAMON', 360 + k * 0.6, ly + k); }
-  ctx.lineWidth = 10; ctx.strokeStyle = '#0e1838'; ctx.lineJoin = 'round'; ctx.strokeText('OSCAMON', 360, ly);
+  ctx.font = '70px "Press Start 2P", monospace'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+  const word = 'SCAMON', em = 84, gap = 6, ww = ctx.measureText(word).width;
+  const lx = 360 - (em + gap + ww) / 2, tx = lx + em + gap;
+  for (let k = 9; k >= 1; k--) { ctx.fillStyle = k > 6 ? '#0e1838' : '#1d3a8a'; ctx.fillText(word, tx + k * 0.6, ly + k); }
+  ctx.lineWidth = 10; ctx.strokeStyle = '#0e1838'; ctx.lineJoin = 'round'; ctx.strokeText(word, tx, ly);
   g = ctx.createLinearGradient(0, ly, 0, ly + 70); g.addColorStop(0, '#fff6a8'); g.addColorStop(0.45, '#ffd23a'); g.addColorStop(1, '#f08a1a');
-  ctx.fillStyle = g; ctx.fillText('OSCAMON', 360, ly);
+  ctx.fillStyle = g; ctx.fillText(word, tx, ly);
   ctx.save(); ctx.beginPath(); ctx.rect(0, ly, W, 70); ctx.clip();
   ctx.globalCompositeOperation = 'source-atop';
   const shine = ((t / 6) % 1100) - 200;
   g = ctx.createLinearGradient(shine, 0, shine + 90, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.75)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fillText('OSCAMON', 360, ly);
+  ctx.fillStyle = g; ctx.fillText(word, tx, ly);
   ctx.restore();
+  if (LOGO.complete && LOGO.naturalWidth) {
+    const cx = lx + em / 2, cy = ly + 35;
+    ctx.save(); ctx.translate(cx + 4, cy + 6); ctx.fillStyle = 'rgba(14,24,56,0.6)'; ctx.beginPath(); ctx.arc(0, 0, em / 2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.sin(t / 900) * 0.12);
+    ctx.drawImage(LOGO, -em / 2, -em / 2, em, em);
+    ctx.restore();
+  }
+  ctx.textAlign = 'center';
   // Cinta con los colores de Aragón
   const ry = 122 + bob;
   ctx.fillStyle = '#9a1414';

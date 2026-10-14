@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Oscamon</title>
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f6fb8"/>
+      <stop offset="1" stop-color="#7cc0e8"/>
+    </linearGradient>
+    <linearGradient id="prado" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3fae5a"/>
+      <stop offset="1" stop-color="#1f7a3c"/>
+    </linearGradient>
+    <linearGradient id="oro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff2a0"/>
+      <stop offset="0.5" stop-color="#f4c430"/>
+      <stop offset="1" stop-color="#c7801a"/>
+    </linearGradient>
+    <linearGradient id="blanco" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfe6ee"/>
+    </linearGradient>
+    <clipPath id="bola"><circle cx="128" cy="128" r="104"/></clipPath>
+    <clipPath id="boton"><circle cx="128" cy="128" r="26"/></clipPath>
+  </defs>
+  <!-- Aro dorado -->
+  <circle cx="128" cy="128" r="124" fill="#14244e"/>
+  <circle cx="128" cy="128" r="118" fill="url(#oro)"/>
+  <circle cx="128" cy="128" r="108" fill="#14244e"/>
+  <g clip-path="url(#bola)">
+    <!-- Mitad superior: el Pirineo -->
+    <rect x="0" y="0" width="256" height="128" fill="url(#cielo)"/>
+    <polygon points="14,128 58,58 84,92 118,40 152,86 176,60 230,128" fill="#5a6a9a"/>
+    <polygon points="58,58 70,77 63,74 54,82 46,77" fill="#ffffff"/>
+    <polygon points="118,40 134,62 124,58 114,66 104,60" fill="#ffffff"/>
+    <polygon points="176,60 190,78 181,74 172,80 166,74" fill="#ffffff"/>
+    <polygon points="0,128 40,96 80,112 128,90 176,110 214,94 256,128" fill="url(#prado)"/>
+    <!-- Mitad inferior blanca -->
+    <rect x="0" y="128" width="256" height="128" fill="url(#blanco)"/>
+  </g>
+  <!-- Banda central y botón con la bandera de Aragón -->
+  <rect x="24" y="118" width="208" height="20" fill="#14244e"/>
+  <circle cx="128" cy="128" r="38" fill="#14244e"/>
+  <circle cx="128" cy="128" r="30" fill="url(#oro)"/>
+  <g clip-path="url(#boton)">
+    <!-- Bandera de Aragón: cuatro barras rojas sobre amarillo (9 franjas iguales) -->
+    <rect x="98" y="98" width="60" height="60" fill="#f6d21e"/>
+    <rect x="98" y="107.8" width="60" height="5.8" fill="#d0141a"/>
+    <rect x="98" y="119.4" width="60" height="5.8" fill="#d0141a"/>
+    <rect x="98" y="131" width="60" height="5.8" fill="#d0141a"/>
+    <rect x="98" y="142.6" width="60" height="5.8" fill="#d0141a"/>
+  </g>
+  <circle cx="128" cy="128" r="26" fill="none" stroke="#14244e" stroke-width="3"/>
+  <!-- Brillo -->
+  <ellipse cx="88" cy="66" rx="30" ry="14" fill="#ffffff" opacity="0.35" transform="rotate(-30 88 66)"/>
+</svg>

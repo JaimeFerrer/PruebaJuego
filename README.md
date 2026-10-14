@@ -109,6 +109,7 @@ La partida se guarda en el navegador (`localStorage`) desde el menú. También s
 
 ```
 index.html      página y mandos táctiles
+img/logo.svg    emblema del juego (favicon y logotipo de la portada); img/*.png son sus versiones en PNG
 css/style.css   interfaz (diálogos, menús, mandos)
 js/data.js      tipos, movimientos, especies y objetos
 js/map.js       ciudad de Huesca, edificios, carteles y NPC (se incrusta en el mapa grande)
