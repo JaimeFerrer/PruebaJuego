@@ -78,9 +78,9 @@ const GENERIC_HOUSE = [
   'Mi perro se llama Moncayo, como la montaña.',
 ];
 const TOWNS = [
-  { id: 'ayerbe', style: 'hoya', special: { kind: 'hall', name: 'Palacio de los Marqueses de Ayerbe', text: ['Un palacio renacentista del siglo XV que preside la plaza.', 'Aquí se recuerda que Santiago Ramón y Cajal pasó parte de su infancia en Ayerbe.'] }, name: 'Ayerbe', cx: 38, cy: 99, station: true,
-    sign: 'AYERBE\nPueblo de la Hoya con dos palacios y una torre del reloj.',
-    houses: ['Una vecina prepara longaniza de Graus. ¡Qué bien huele!', 'Aquí nació Santiago Ramón y Cajal... bueno, ¡vivió aquí de niño!'] },
+  { id: 'ayerbe', style: 'hoya', special: { kind: 'hall', name: 'Palacio de los Marqueses de Ayerbe', text: ['Un palacio renacentista del siglo XV que preside la plaza.', 'Aquí se recuerda que Santiago Ramón y Cajal pasó parte de su infancia en Ayerbe.'] }, name: 'Ayerbe', cx: 38, cy: 99, station: true, bakery: true,
+    sign: 'AYERBE\nPueblo de la Hoya con dos palacios y una torre del reloj. ¡Prueba sus famosas tortas!',
+    houses: ['¿Ya has probado las tortas de Ayerbe? Finas, crujientes y con azúcar por encima. ¡Una delicia!', 'Ramón y Cajal pasó parte de su infancia aquí, en Ayerbe.'] },
   { id: 'riglos', style: 'hoya', special: { kind: 'house', name: 'Refugio de Riglos', heal: true, text: ['El refugio de escaladores de Riglos te ofrece algo caliente y un rato de descanso.'] }, name: 'Riglos', cx: 18, cy: 79, center: false,
     sign: 'RIGLOS\nAl pie de los Mallos. Paraíso de escaladores y buitres leonados.',
     houses: ['Un escalador se venda los dedos: "Hoy subo el Pisón".', 'Desde la ventana se ven los buitres planeando sobre los Mallos.'] },
@@ -290,7 +290,8 @@ function initWorldData() {
     house('casa2', ox + 1, oy + 8, 3, 3);
     if (t.shop !== false) add({ id: p + 'tienda', kind: 'shop', x: ox + 5, y: oy + 8, w: 4, h: 3, door: 1, name: 'Tienda' });
     else house('casa3', ox + 5, oy + 8, 4, 3);
-    house('casa4', ox + 10, oy + 8, 3, 3);
+    if (t.bakery) add({ id: p + 'panaderia', kind: 'bakery', x: ox + 10, y: oy + 8, w: 3, h: 3, door: 1, name: 'Panadería de Ayerbe' });
+    else house('casa4', ox + 10, oy + 8, 3, 3);
     house('casa5', ox + 14, oy + 8, 4, 3);
     if (t.station) add({ id: p + 'estacion', kind: 'station', x: t.cx - 3, y: oy + TOWN_H, w: 6, h: 2, door: 3, name: 'Estación de ' + t.name, station: t.id });
     W_SIGNS.push({ x: ox + 6, y: oy + 6, text: t.sign });

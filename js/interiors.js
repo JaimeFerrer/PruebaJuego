@@ -18,6 +18,7 @@ const ROLE_PAL = {
   guide: ['#8a4a2a', '#c0a040', '#3a3a4a'],
   mom: ['#8a4a2a', '#e0a0c0', '#4a4a6a'],
   stationmaster: ['#2a3a6a', '#2a3a6a', '#2a2a3a'],
+  baker: ['#f4f4f4', '#f4f0e0', '#6a4a3a'],
 };
 const RESIDENT_PALS = [
   ['#3a2a1a', '#d06040', '#3a4a6a'], ['#c0a060', '#60a060', '#4a3a2a'], ['#6a3a2a', '#5070c0', '#2a2a3a'],
@@ -44,7 +45,7 @@ for (const k in GYM_TRAINERS) Object.assign(GYM_TRAINERS[k], {
 });
 
 const ROOM_KIND = {
-  house: 'house', hogar: 'house', center: 'center', shop: 'shop', lab: 'lab',
+  house: 'house', hogar: 'house', center: 'center', shop: 'shop', bakery: 'shop', lab: 'lab',
   church: 'church', cathedral: 'church', monastery: 'church', sanpedro: 'church', jacacat: 'church', colegiata: 'church',
   hall: 'hall', casino: 'hall', station: 'station', bigstation: 'station',
   castle: 'castle', loarre: 'castle', citadel: 'castle',
@@ -106,7 +107,8 @@ function makeInterior(b, id) {
       rect(1, 4, 3, 1, 'q'); set(3, 3, 'q'); set(3, 2, 'q');
       rect(5, 3, W - 6, 1, 'v'); rect(5, 5, W - 6, 1, 'v');
       set(W - 2, H - 2, 'p');
-      host(2, 3, 'clerk');
+      if (b.kind === 'bakery') { set(W - 2, 2, 'z'); set(W - 3, 2, 'z'); }
+      host(2, 3, b.kind === 'bakery' ? 'baker' : 'clerk');
       break;
     }
     case 'lab': {

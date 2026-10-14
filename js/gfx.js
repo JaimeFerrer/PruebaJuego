@@ -646,6 +646,15 @@ function drawBuilding(ctx, b, sx, sy) {
       }
       door(); outline(); break;
     }
+    case 'bakery': {
+      // Panadería de Ayerbe: toldo de rayas y pan en el escaparate
+      house('#f4e4c0', '#b8503a');
+      R(0, 20, W, 7, '#f4f4f4'); for (let x = 0; x < W; x += 6) R(x, 20, 3, 7, '#c83838');
+      for (let x = 0; x < W; x += 6) { ctx.fillStyle = x % 12 ? '#c83838' : '#f4f4f4'; ctx.beginPath(); ctx.arc(sx + x + 3, sy + 27, 3, 0, Math.PI); ctx.fill(); }
+      R(3, 31, 12, 8, '#7fb0e6'); ctx.fillStyle = '#d8a050'; ctx.beginPath(); ctx.ellipse(sx + 9, sy + 37, 5, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+      R(2, 1, W - 4, 8, '#6a3a1a'); T('PAN', W / 2, 2.5, '#f4e4a0');
+      door('#7a4a2a'); outline(); break;
+    }
     case 'center': {
       house('#f8f8f8', '#e04848');
       circ(W / 2, 11, 7, '#f4f4f4'); ctx.fillStyle = '#e04848'; ctx.beginPath(); ctx.arc(sx + W / 2, sy + 11, 7, Math.PI, 0); ctx.fill();

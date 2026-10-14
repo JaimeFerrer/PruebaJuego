@@ -141,7 +141,13 @@ function choose(options, { cancel = true, start = 0, layout = 'list', title = ''
     const n = opts.length, cols = layout === 'grid' ? 2 : 1;
     const render = () => {
       [...ul.children].forEach((li, i) => li.classList.toggle('sel', i === sel));
-      const el = ul.children[sel]; if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+      // Desplaza solo la lista (scrollIntoView movía también la pantalla del juego)
+      const el = ul.children[sel];
+      if (el) {
+        if (el.offsetTop < ul.scrollTop) ul.scrollTop = el.offsetTop;
+        else if (el.offsetTop + el.offsetHeight > ul.scrollTop + ul.clientHeight) ul.scrollTop = el.offsetTop + el.offsetHeight - ul.clientHeight;
+      }
+      const wrap = $('wrap'); wrap.scrollLeft = 0; wrap.scrollTop = 0;
     };
     $('dialog').classList.toggle('narrow', layout === 'grid');
     const close = v => { menu.classList.add('hidden'); $('dialog').classList.remove('narrow'); if (uiHandler === handler) uiHandler = null; res(v); };

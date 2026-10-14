@@ -210,6 +210,7 @@ const ITEMS = {
   ball:   { name: 'Oscaball', price: 20, desc: 'Sirve para capturar Oscamon salvajes.' },
   potion: { name: 'Poción', price: 30, heal: 20, desc: 'Restaura 20 PS.' },
   super:  { name: 'Superpoción', price: 70, heal: 60, desc: 'Restaura 60 PS.' },
+  torta:  { name: 'Torta de Ayerbe', price: 45, heal: 40, bakery: true, desc: 'Fina, crujiente y con azúcar. Restaura 40 PS... ¡y el ánimo!' },
 };
 
 // ---------- Utilidades de Oscamon ----------

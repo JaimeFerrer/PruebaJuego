@@ -40,7 +40,7 @@ Es un único mapa de toda la **provincia de Huesca** (600 × 510 casillas), con 
 
 Los edificios emblemáticos se parecen a los reales: la Catedral de Huesca con su portada gótica y su galería de arquillos, San Pedro el Viejo con su torre hexagonal y el crismón, el Museo de Huesca con su portada barroca, el Círculo Oscense con sus torreones, Loarre con sus cubos y su torre del homenaje, la Catedral de Jaca con su pórtico y el ajedrezado jaqués, la Estación de Canfranc, San Juan de la Peña bajo su roca y la colegiata de Alquézar.
 
-Cada pueblo tiene plaza, iglesia, Centro Oscamon, tienda, varias casas y un **edificio propio** (el Palacio de Ayerbe, el Museo del Traje Ansotano, la Basílica de Graus, el Museo del Vino de Barbastro...). Las casas cambian según la comarca: pizarra y chimeneas troncocónicas en el Pirineo, teja en la Hoya y el Somontano, y adobe en Monegros.
+Cada pueblo tiene plaza, iglesia, Centro Oscamon, tienda, varias casas y un **edificio propio** (la panadería de Ayerbe con sus famosas tortas, el Palacio de Ayerbe, el Museo del Traje Ansotano, la Basílica de Graus, el Museo del Vino de Barbastro...). Las casas cambian según la comarca: pizarra y chimeneas troncocónicas en el Pirineo, teja en la Hoya y el Somontano, y adobe en Monegros.
 
 **Se puede entrar en todos los edificios con puerta.** Dentro hay muebles con los que puedes interactuar y alguien que te atiende: la enfermera en los Centros, la dependienta en las tiendas, el jefe de estación, el párroco, los guías de castillos y museos, los vecinos en sus casas y los Líderes en los Gimnasios, donde un aprendiz te reta antes. Para salir, pisa el felpudo verde.
 

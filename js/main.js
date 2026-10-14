@@ -33,7 +33,7 @@ function text(str, x, y, color, size = 6, align = 'left') {
 // ---------------- Estado de la partida ----------------
 function newState() {
   return {
-    party: [], box: [], bag: { ball: 0, potion: 0, super: 0 }, money: 100,
+    party: [], box: [], bag: { ball: 0, potion: 0, super: 0, torta: 0 }, money: 100,
     flags: {}, seen: {}, caught: {}, badges: 0, map: 'world', worldVer: WORLD_VER, pos: { ...WORLD_START },
   };
 }
@@ -176,7 +176,10 @@ worldPress = btn => {
   if (t === 'R') return runScript(() => say('Conglomerado rojo de los Mallos de Riglos. ¡Impresionante!'));
   if (t === 'r') return runScript(() => say('La vía del tren Huesca-Canfranc. ¡No se juega en las vías!'));
   if (CUR.interior && FURNITURE_TEXT[t]) {
-    const txt = t === 'o' && CUR.building.kind !== 'bodega' ? 'Un barril viejo de madera.' : FURNITURE_TEXT[t];
+    const bk = CUR.building.kind === 'bakery';
+    const txt = bk && t === 'v' ? 'Estanterías llenas de tortas de Ayerbe recién hechas. ¡Qué olor a horno!'
+      : bk && t === 'z' ? 'El horno de leña, todavía calentito.'
+      : t === 'o' && CUR.building.kind !== 'bodega' ? 'Un barril viejo de madera.' : FURNITURE_TEXT[t];
     return runScript(() => say(txt));
   }
 };
@@ -256,6 +259,7 @@ async function hostScript(b) {
   if (b.station) return trainScript(b);
   if (b.kind === 'center') return centerScript(b.town || (b.id === 'j_centro' ? 'Jaca' : 'Huesca'));
   if (b.kind === 'shop') return shopScript();
+  if (b.kind === 'bakery') return bakeryScript();
   return buildingScript(b);
 }
 
@@ -414,6 +418,25 @@ async function labScript() {
   else await say('Explora los Mallos de Riglos, el Salto de Roldán y las riberas del Isuela. ¡Hay mucho por descubrir!');
 }
 
+async function bakeryScript() {
+  await say('PANADERA: ¡Buenos días! Bienvenido a la panadería. ¡Las tortas de Ayerbe acaban de salir del horno!');
+  if (!G.flags.tortaGift) {
+    G.flags.tortaGift = true; G.bag.torta += 2; Sound.item();
+    await say('PANADERA: Toma, prueba dos. Son finas y crujientes, con azúcar por encima. ¡Aquí las hacemos de toda la vida!');
+    await say('¡Has recibido 2 Tortas de Ayerbe! Cada una restaura 40 PS a un Oscamon.');
+  }
+  const t = ITEMS.torta;
+  for (;;) {
+    say(`PANADERA: ¿Cuántas tortas quieres? Cada una cuesta ${t.price} €. (Tienes ${G.money} €.)`, { wait: false });
+    const q = [1, 3, 6];
+    const j = await choose([...q.map(n => ({ label: `× ${n} ${n > 1 ? 'tortas' : 'torta'}`, sub: n * t.price + ' €', disabled: n * t.price > G.money })), 'Nada más']);
+    if (j < 0 || j === q.length) return say('PANADERA: ¡Que aproveche! Y vuelve pronto, que mañana hacemos más.');
+    G.money -= q[j] * t.price; G.bag.torta += q[j];
+    Sound.item();
+    await say(`¡Has comprado ${q[j]} × Torta de Ayerbe! Huelen de maravilla.`);
+  }
+}
+
 async function centerScript(town = 'Huesca') {
   await say(`ENFERMERA: ¡Bienvenido al Centro Oscamon de ${town}!`);
   for (;;) {
@@ -459,7 +482,7 @@ async function shopScript() {
   await say('DEPENDIENTA: ¡Buenas! Bienvenido a Ultramarinos del Coso. Aquí hay de todo desde hace más de un siglo.');
   for (;;) {
     hideDialog();
-    const keys = Object.keys(ITEMS);
+    const keys = Object.keys(ITEMS).filter(k => !ITEMS[k].bakery);
     const i = await choose([...keys.map(k => ({ label: ITEMS[k].name, sub: ITEMS[k].price + ' €' })), 'Salir'], { title: `DINERO: ${G.money} €` });
     if (i < 0 || i === keys.length) return say('DEPENDIENTA: ¡Gracias, vuelve pronto! Y llévate una trenza, que están recién hechas.');
     const it = ITEMS[keys[i]];
@@ -697,38 +720,154 @@ function renderWorld(t) {
   }
 }
 
+// ---------------- Pantalla de inicio ----------------
+// Se dibuja a la resolución real del lienzo (720×480) para que tenga más detalle.
+let TITLE = null;
+function titleScene() {
+  if (TITLE) return TITLE;
+  const r = srand(2024);
+  const ridge = (base, amp, step, seed) => {
+    const rr = srand(seed), pts = [];
+    for (let x = -20; x <= 760; x += step) pts.push([x, base - amp * (0.35 + 0.65 * rr()) * (0.6 + 0.4 * Math.sin(x / 90 + seed))]);
+    return pts;
+  };
+  TITLE = {
+    far: ridge(250, 120, 34, 3), mid: ridge(290, 90, 26, 7), near: ridge(330, 50, 40, 11),
+    stars: Array.from({ length: 60 }, () => [r() * 720, r() * 170, r() * 1.4 + 0.4, r() * 6]),
+    clouds: Array.from({ length: 7 }, (_, i) => [r() * 900, 60 + r() * 120, 40 + r() * 60, 0.15 + r() * 0.25, i]),
+    birds: Array.from({ length: 4 }, () => [r() * 720, 120 + r() * 90, 0.3 + r() * 0.4, r() * 6]),
+    grass: Array.from({ length: 220 }, () => [r() * 720, 380 + r() * 100, 4 + r() * 8, r() < 0.12 ? (r() < 0.5 ? '#ffe070' : '#ff8aa0') : null]),
+    sparks: Array.from({ length: 26 }, () => [r() * 720, r() * 480, r() * 6, 0.5 + r()]),
+  };
+  return TITLE;
+}
+
 function renderTitle(t) {
-  const g = ctx.createLinearGradient(0, 0, 0, 160);
-  g.addColorStop(0, '#5aa0e8'); g.addColorStop(0.6, '#bfe0f8'); g.addColorStop(1, '#f8e8c0');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, 240, 160);
-  // Pirineo
-  ctx.fillStyle = '#8a9ab8';
-  ctx.beginPath(); ctx.moveTo(0, 100);
-  [[20, 70], [45, 88], [70, 58], [95, 84], [120, 62], [150, 86], [175, 54], [200, 80], [225, 66], [240, 78]].forEach(([x, y]) => ctx.lineTo(x, y));
-  ctx.lineTo(240, 110); ctx.lineTo(0, 110); ctx.fill();
-  ctx.fillStyle = '#f4f8ff';
-  for (const [x, y] of [[70, 58], [120, 62], [175, 54], [20, 70], [225, 66]]) { ctx.beginPath(); ctx.moveTo(x - 7, y + 8); ctx.lineTo(x, y); ctx.lineTo(x + 7, y + 8); ctx.fill(); }
-  // Silueta de Huesca: catedral en lo alto del cerro
-  ctx.fillStyle = '#c89a6a';
-  ctx.beginPath(); ctx.ellipse(120, 132, 140, 34, 0, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = '#8a6040';
-  ctx.fillRect(132, 82, 12, 22); ctx.fillRect(130, 80, 16, 3);
-  ctx.beginPath(); ctx.moveTo(100, 104); ctx.lineTo(116, 90); ctx.lineTo(132, 104); ctx.fill();
-  ctx.fillRect(100, 98, 32, 10);
-  for (const [x, w, h] of [[60, 18, 14], [80, 14, 10], [150, 16, 12], [168, 20, 9], [190, 14, 13]]) ctx.fillRect(x, 108 - h, w, h + 4);
-  ctx.fillStyle = '#7ccb5c'; ctx.fillRect(0, 128, 240, 32);
-  // Título
-  const bob = Math.sin(t / 500) * 2;
-  for (const [dx, dy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [2, 2]]) text('OSCAMON', 120 + dx, 14 + dy + bob, '#203a80', 20, 'center');
-  text('OSCAMON', 120, 14 + bob, '#f8d030', 20, 'center');
-  text('EDICION HUESCA', 121, 41, '#203a80', 8, 'center');
-  text('EDICION HUESCA', 120, 40, '#ffffff', 8, 'center');
-  ['parrillin', 'isuelin', 'somontin'].forEach((s, i) => {
-    const y = 104 + Math.sin(t / 300 + i * 2) * 3;
-    ctx.drawImage(monSprite(s), 54 + i * 50, y, 32, 32);
+  const S = titleScene(), W = 720, H = 480;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  // Cielo de atardecer
+  let g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#14244e'); g.addColorStop(0.35, '#3d4f8c'); g.addColorStop(0.6, '#e9876a'); g.addColorStop(0.75, '#ffc98a'); g.addColorStop(1, '#ffe2a8');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  for (const [x, y, sz, ph] of S.stars) { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(t / 600 + ph); ctx.fillStyle = '#fff'; ctx.fillRect(x, y, sz, sz); }
+  ctx.globalAlpha = 1;
+  // Sol con halo
+  const sx = 540, sy = 268;
+  g = ctx.createRadialGradient(sx, sy, 10, sx, sy, 190);
+  g.addColorStop(0, 'rgba(255,240,190,0.95)'); g.addColorStop(0.25, 'rgba(255,200,120,0.55)'); g.addColorStop(1, 'rgba(255,160,90,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff2c8'; ctx.beginPath(); ctx.arc(sx, sy, 46, 0, Math.PI * 2); ctx.fill();
+  // Nubes
+  for (const [x0, y, w, sp, i] of S.clouds) {
+    const x = ((x0 + t * sp * 0.03) % 1000) - 140;
+    ctx.fillStyle = i % 2 ? 'rgba(255,214,190,0.55)' : 'rgba(255,236,220,0.45)';
+    for (const [dx, dy, rr] of [[0, 0, 1], [w * 0.5, -8, 0.8], [w, 2, 0.9], [w * 0.25, 6, 0.7]]) { ctx.beginPath(); ctx.ellipse(x + dx, y + dy, w * 0.45 * rr, 14 * rr, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // Bayardo, el legendario, cruzando el cielo
+  const bx = ((t * 0.04) % 1100) - 180, by = 150 + Math.sin(t / 700) * 10;
+  ctx.globalAlpha = 0.85; ctx.imageSmoothingEnabled = false;
+  ctx.save(); ctx.translate(bx + 70, by); ctx.scale(-1, 1); ctx.drawImage(monSprite('bayardo'), 0, 0, 70, 70); ctx.restore();
+  ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
+  // Pirineo: tres capas con nieve
+  const layer = (pts, fill, snow, bottom) => {
+    ctx.fillStyle = fill; ctx.beginPath(); ctx.moveTo(-20, bottom);
+    for (const [x, y] of pts) ctx.lineTo(x, y);
+    ctx.lineTo(760, bottom); ctx.closePath(); ctx.fill();
+    if (snow) for (let k = 1; k < pts.length - 1; k++) {
+      const [x, y] = pts[k];
+      if (y < pts[k - 1][1] && y < pts[k + 1][1] && y < bottom - 80) {
+        ctx.fillStyle = snow; ctx.beginPath(); ctx.moveTo(x, y);
+        ctx.lineTo(x + (pts[k + 1][0] - x) * 0.35, y + (pts[k + 1][1] - y) * 0.35);
+        ctx.lineTo(x + 3, y + 16); ctx.lineTo(x - 4, y + 12);
+        ctx.lineTo(x + (pts[k - 1][0] - x) * 0.35, y + (pts[k - 1][1] - y) * 0.35); ctx.fill();
+      }
+    }
+  };
+  layer(S.far, '#8a86b8', '#fbe8f0', 330);
+  layer(S.mid, '#6a6a9c', '#f4dce8', 350);
+  // Mallos de Riglos
+  for (const [x, w, h] of [[38, 30, 120], [70, 36, 150], [108, 28, 110], [134, 34, 135]]) {
+    g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, '#d8744a'); g.addColorStop(1, '#8e3e26');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, 360); ctx.lineTo(x, 360 - h + w / 2);
+    ctx.quadraticCurveTo(x + w / 2, 360 - h - w / 3, x + w, 360 - h + w / 2); ctx.lineTo(x + w, 360); ctx.fill();
+  }
+  layer(S.near, '#4f6a7a', null, 380);
+  // Colina de Loarre y silueta de Huesca
+  ctx.fillStyle = '#3b5a4c'; ctx.beginPath(); ctx.ellipse(250, 395, 190, 70, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#2f4a3e';
+  ctx.fillRect(200, 312, 70, 24); ctx.fillRect(255, 290, 18, 46); ctx.fillRect(206, 300, 14, 36);
+  for (let x = 200; x < 270; x += 9) ctx.fillRect(x, 307, 5, 6);
+  ctx.beginPath(); ctx.arc(236, 314, 12, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#35503f'; ctx.beginPath(); ctx.ellipse(560, 405, 230, 72, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#29402f';
+  ctx.fillRect(520, 300, 26, 46); ctx.beginPath(); ctx.moveTo(518, 300); ctx.lineTo(533, 284); ctx.lineTo(548, 300); ctx.fill();
+  ctx.fillRect(546, 318, 70, 28); ctx.beginPath(); ctx.moveTo(546, 318); ctx.lineTo(581, 302); ctx.lineTo(616, 318); ctx.fill();
+  for (const [x, w, h] of [[440, 34, 22], [476, 30, 30], [622, 28, 24], [652, 38, 18], [690, 30, 26]]) ctx.fillRect(x, 346 - h, w, h + 2);
+  ctx.fillStyle = 'rgba(255,220,140,0.85)';
+  for (const [x, y] of [[452, 332], [486, 326], [560, 330], [592, 330], [632, 334], [700, 332]]) ctx.fillRect(x, y, 4, 5);
+  // Buitres planeando
+  ctx.strokeStyle = '#2a2a3a'; ctx.lineWidth = 2.2;
+  for (const [x0, y0, sp, ph] of S.birds) {
+    const x = (x0 + t * sp * 0.05) % 760 - 20, y = y0 + Math.sin(t / 900 + ph) * 8, f = Math.sin(t / 300 + ph) * 3;
+    ctx.beginPath(); ctx.moveTo(x - 12, y - 2 + f); ctx.quadraticCurveTo(x - 6, y - 6 + f, x, y); ctx.quadraticCurveTo(x + 6, y - 6 + f, x + 12, y - 2 + f); ctx.stroke();
+  }
+  // Prado en primer plano
+  g = ctx.createLinearGradient(0, 360, 0, H); g.addColorStop(0, '#6fb04a'); g.addColorStop(1, '#3f7f34');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 400); ctx.quadraticCurveTo(360, 352, 720, 398); ctx.lineTo(720, H); ctx.lineTo(0, H); ctx.fill();
+  for (const [x, y, h, flower] of S.grass) {
+    const sway = Math.sin(t / 500 + x) * 1.5;
+    ctx.strokeStyle = '#2f6a2a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + sway, y - h); ctx.stroke();
+    if (flower) { ctx.fillStyle = flower; ctx.beginPath(); ctx.arc(x + sway, y - h, 2.4, 0, Math.PI * 2); ctx.fill(); }
+  }
+  // Los tres iniciales
+  ctx.imageSmoothingEnabled = false;
+  ['parrillin', 'isuelin', 'somontin'].forEach((sp, i) => {
+    const x = 128 + i * 176, hop = Math.abs(Math.sin(t / 380 + i * 1.3)) * 10, y = 300 - hop;
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(x + 64, 424, 46 - hop, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(monSprite(sp), x, y, 128, 128);
   });
-  if (Math.floor(t / 500) % 2 && $('menu').classList.contains('hidden')) text('PULSA A · Z · ESPACIO', 120, 142, '#203a20', 6, 'center');
-  text('Juego de fans no oficial', 120, 152, '#3a5a3a', 4, 'center');
+  ctx.imageSmoothingEnabled = true;
+  // Destellos
+  for (const [x, y, ph, sz] of S.sparks) {
+    const a = Math.max(0, Math.sin(t / 400 + ph)); if (a < 0.2) continue;
+    ctx.fillStyle = `rgba(255,250,210,${a * 0.8})`; ctx.fillRect(x - sz * 2, y, sz * 4, 1); ctx.fillRect(x, y - sz * 2, 1, sz * 4);
+  }
+  // Logotipo con relieve y brillo
+  const bob = Math.sin(t / 700) * 4, ly = 34 + bob;
+  ctx.font = '70px "Press Start 2P", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let k = 9; k >= 1; k--) { ctx.fillStyle = k > 6 ? '#0e1838' : '#1d3a8a'; ctx.fillText('OSCAMON', 360 + k * 0.6, ly + k); }
+  ctx.lineWidth = 10; ctx.strokeStyle = '#0e1838'; ctx.lineJoin = 'round'; ctx.strokeText('OSCAMON', 360, ly);
+  g = ctx.createLinearGradient(0, ly, 0, ly + 70); g.addColorStop(0, '#fff6a8'); g.addColorStop(0.45, '#ffd23a'); g.addColorStop(1, '#f08a1a');
+  ctx.fillStyle = g; ctx.fillText('OSCAMON', 360, ly);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, ly, W, 70); ctx.clip();
+  ctx.globalCompositeOperation = 'source-atop';
+  const shine = ((t / 6) % 1100) - 200;
+  g = ctx.createLinearGradient(shine, 0, shine + 90, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.75)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillText('OSCAMON', 360, ly);
+  ctx.restore();
+  // Cinta con los colores de Aragón
+  const ry = 122 + bob;
+  ctx.fillStyle = '#9a1414';
+  ctx.beginPath(); ctx.moveTo(176, ry + 6); ctx.lineTo(150, ry + 22); ctx.lineTo(176, ry + 38); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(544, ry + 6); ctx.lineTo(570, ry + 22); ctx.lineTo(544, ry + 38); ctx.fill();
+  ctx.fillStyle = '#f4d020'; ctx.fillRect(170, ry, 380, 40);
+  ctx.fillStyle = '#d01818'; for (let k = 0; k < 4; k++) ctx.fillRect(170, ry + 4 + k * 9, 380, 4);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(196, ry + 6, 328, 28);
+  ctx.font = '20px "Press Start 2P", monospace';
+  ctx.fillStyle = '#fff4c8'; ctx.fillText('EDICION HUESCA', 360, ry + 10);
+  // Pulsa para empezar
+  if ($('menu').classList.contains('hidden')) {
+    const a = 0.55 + 0.45 * Math.sin(t / 260);
+    ctx.font = '18px "Press Start 2P", monospace';
+    ctx.lineWidth = 6; ctx.strokeStyle = `rgba(20,30,60,${a})`; ctx.strokeText('PULSA A PARA EMPEZAR', 360, 438);
+    ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillText('PULSA A PARA EMPEZAR', 360, 438);
+  }
+  ctx.font = '9px "Press Start 2P", monospace'; ctx.fillStyle = 'rgba(20,40,20,0.8)';
+  ctx.fillText('Juego de fans no oficial · Alto Aragón', 360, 466);
+  ctx.textAlign = 'left';
+  ctx.restore();
 }
 
 // ---------------- Mapa de la provincia ----------------
@@ -811,7 +950,7 @@ async function titleFlow() {
   await tween(400, k => (fade = k));
   if (fresh) G = newState();
   else {
-    G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0 }, saved.bag);
+    G = Object.assign(newState(), saved); G.bag = Object.assign({ ball: 0, potion: 0, super: 0, torta: 0 }, saved.bag);
     if (saved.map !== 'world') { G.pos = migratePos(saved.map, saved.pos || START); G.lastCenter = null; }
     else if (saved.worldVer !== WORLD_VER) { G.pos = migrateWorldPos(saved.pos || WORLD_START); G.lastCenter = null; }
     G.worldVer = WORLD_VER;
