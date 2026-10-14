@@ -28,7 +28,8 @@ main {
   align-items: center;
   justify-content: center;
   min-height: 100%;
-  padding: 4px 0;
+  /* Respeta la muesca y la barra inferior cuando se abre como app instalada */
+  padding: calc(4px + env(safe-area-inset-top, 0px)) env(safe-area-inset-right, 0px) calc(4px + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px);
   gap: 8px;
 }
 

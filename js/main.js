@@ -1007,3 +1007,8 @@ function resize() {
 }
 
 boot();
+
+// Permite instalar el juego como aplicación y abrirlo sin conexión
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  try { navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) { /* no disponible */ }
+}

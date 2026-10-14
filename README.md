@@ -13,7 +13,12 @@ Abre `index.html` en el navegador. También puedes servir la carpeta con cualqui
 npx http-server .   # o: python3 -m http.server
 ```
 
-Funciona en el móvil con mandos táctiles.
+Funciona en el móvil con mandos táctiles y **se puede instalar como una aplicación**:
+
+- **iPhone (Safari):** botón Compartir → *Añadir a pantalla de inicio*.
+- **Android (Chrome):** menú ⋮ → *Instalar aplicación* (o *Añadir a pantalla de inicio*).
+
+Al abrirlo desde el icono se ve a pantalla completa, con una pantalla de carga con el emblema del juego, y funciona sin conexión.
 
 **Jugar online:** https://jaimeferrer.github.io/PruebaJuego/ (se publica solo con GitHub Pages cada vez que se sube a `main`).
 
@@ -110,6 +115,8 @@ La partida se guarda en el navegador (`localStorage`) desde el menú. También s
 ```
 index.html      página y mandos táctiles
 img/logo.svg    emblema del juego (favicon y logotipo de la portada); img/*.png son sus versiones en PNG
+img/splash/     pantallas de carga del iPhone al abrir el juego instalado
+manifest.webmanifest, sw.js   instalación como aplicación y modo sin conexión
 css/style.css   interfaz (diálogos, menús, mandos)
 js/data.js      tipos, movimientos, especies y objetos
 js/map.js       ciudad de Huesca, edificios, carteles y NPC (se incrusta en el mapa grande)

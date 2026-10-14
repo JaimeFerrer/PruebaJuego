@@ -1,0 +1,17 @@
+{
+  "name": "Oscamon · Edición Huesca",
+  "short_name": "Oscamon",
+  "description": "Aventura de criaturas al estilo Pokémon por toda la provincia de Huesca.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14244e",
+  "theme_color": "#14244e",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
